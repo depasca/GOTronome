@@ -2,6 +2,8 @@ package com.pdp.gotronome.components
 
 import android.util.Log
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,6 +24,7 @@ import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
 private const val TAG = "GOT-TimeSignatureSelectorVertical"
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TimeSignatureSelectorVertical(
     modifier: Modifier = Modifier,
@@ -37,7 +40,7 @@ fun TimeSignatureSelectorVertical(
             color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.padding(all = 16.dp)
         )
-        Column(modifier.selectableGroup()) {
+        FlowRow (modifier.selectableGroup()) {
             radioOptions.forEach { text ->
                 Row(
                     Modifier

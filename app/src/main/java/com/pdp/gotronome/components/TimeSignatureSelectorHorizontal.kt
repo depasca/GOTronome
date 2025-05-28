@@ -1,6 +1,7 @@
 package com.pdp.gotronome.components
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TimeSignatureSelectorHorizontal(
     modifier: Modifier = Modifier,
@@ -37,7 +39,7 @@ fun TimeSignatureSelectorHorizontal(
             color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.padding(all = 16.dp)
         )
-        Row (modifier.selectableGroup()) {
+        FlowRow (modifier.selectableGroup()) {
             radioOptions.forEach { text ->
                 Row(
                     Modifier
