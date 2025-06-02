@@ -87,6 +87,7 @@ fun MetronomeScreen(
                             BeatView(
                                 number = i,
                                 beatNumber = currentBeat,
+                                beatsPerMeasure = beatsPerMeasure,
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -123,6 +124,7 @@ fun MetronomeScreen(
                             BeatView(
                                 number = i,
                                 beatNumber = currentBeat,
+                                beatsPerMeasure = beatsPerMeasure,
                                 modifier = Modifier.weight(1f)
                             )
                         }
