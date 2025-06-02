@@ -28,17 +28,15 @@ oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
         result = createStream();
         if (result == oboe::Result::OK) {
             LOGD("MetronomeEngine::start stream created!");
-            result = stream->requestStart();
+            result = stream->start();
             if (result != oboe::Result::OK) {
                 LOGW("Error starting playback stream. Error: %s, attempt num %d",
                      oboe::convertToText(result), tryCount);
                 stream->close();
                 stream.reset();
-                isPlaying = false;
             }
             else {
                 LOGD("MetronomeEngine::start stream started!");
-                isPlaying = true;
             }
         }
         else{
@@ -50,6 +48,10 @@ oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
     if (result != oboe::Result::OK) {
         LOGE("Error creating playback stream. Error: %s",
              oboe::convertToText(result));
+        isPlaying = false;
+    }
+    else {
+        isPlaying = true;
     }
     return result;
 }
@@ -59,16 +61,28 @@ oboe::Result  MetronomeEngine::stop() {
     oboe::Result result = oboe::Result::OK;
     // Stop, close and delete in case not already closed.
     std::lock_guard<std::mutex> lock(mLock);
-    if (stream) {
-        result = stream->stop();
-        stream->close();
-        stream.reset();
-        isPlaying = false;
-        currentBeat = 0;
-    }
-    if(result != oboe::Result::OK){
+    int tryCount = 0;
+    do {
+        if (tryCount > 0) {
+            usleep(20 * 1000); // Sleep between tries to give the system time to settle.
+        }
+        if (stream) {
+            result = stream->stop();
+            if (result != oboe::Result::OK) {
+                LOGW("Error stopping playback stream. Error: %s",
+                     oboe::convertToText(result));
+            } else {
+                stream->close();
+                stream.reset();
+                isPlaying = false;
+                currentBeat = 0;
+            }
+        }
+    } while (result != oboe::Result::OK && tryCount++ < 3);
+    if (result != oboe::Result::OK) {
         LOGE("Error stopping playback stream. Error: %s",
              oboe::convertToText(result));
+        isPlaying = true;
     }
     return result;
 }
@@ -84,8 +98,7 @@ oboe::Result MetronomeEngine::createStream() {
             ->setCallback(this)
             ->setDirection(oboe::Direction::Output)
             ->openStream(stream);
-    LOGD("MetronomeEngine::createStream result -> %d", result);
-    if (result == oboe::Result::OK) sampleRate = stream->getSampleRate();
+    LOGD("MetronomeEngine::createStream result -> %s", oboe::convertToText(result));
     return result;
 }
 
@@ -128,7 +141,6 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
 
         frameCounter++;
     }
-//    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "MetronomeEngine::generateTick end, numFrames -> %d, currentBeat -> %d", numFrames, currentBeat);
 }
 
 double MetronomeEngine::getCurrentTimeSeconds() {
@@ -136,22 +148,18 @@ double MetronomeEngine::getCurrentTimeSeconds() {
 }
 
 int MetronomeEngine::getCurrentBeat() const {
-//    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "MetronomeEngine::getCurrentBeat -> %d", currentBeat);
     return currentBeat;
 }
 
-bool MetronomeEngine::getIisPlaying() {
-//    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "MetronomeEngine::getIisPlaying -> %d", isPlaying);
+jboolean MetronomeEngine::getIisPlaying() {
     return isPlaying;
 }
 
 oboe::DataCallbackResult MetronomeEngine::onAudioReady(oboe::AudioStream *_stream,
                                                        void *audioData,
                                                        int32_t numFrames) {
-    if (!isPlaying) return oboe::DataCallbackResult::Stop;
     float *floatData = static_cast<float *>(audioData);
     generateTick(floatData, numFrames);
-//    frameCounter = 0;
     return oboe::DataCallbackResult::Continue;
 }
 
@@ -166,17 +174,17 @@ void MetronomeEngine::setJavaVM(JavaVM *vm, jobject callbackObject) {
     onBeatMethod = env->GetStaticMethodID(cls, "onNativeBeat", "(I)V");
 }
 
-//void MetronomeEngine::sendBeatToJava(int beat) {
-//    if (javaVm && onBeatMethod) {
-//        JNIEnv *env;
-//        javaVm->AttachCurrentThread(&env, nullptr);
-//        jclass c = env->GetObjectClass(javaCallbackObj);
-//        if (c == nullptr) {
-//            LOGE("GOT-MetronomeEngine Failed to find class Metronome");
-//        }
-//        else{
-//            env->CallStaticVoidMethod(c, onBeatMethod, beat);
-//        }
-//    }
-//}
+void MetronomeEngine::sendBeatToJava(int beat) {
+    if (javaVm && onBeatMethod) {
+        JNIEnv *env;
+        javaVm->AttachCurrentThread(&env, nullptr);
+        jclass c = env->GetObjectClass(javaCallbackObj);
+        if (c == nullptr) {
+            LOGE("GOT-MetronomeEngine Failed to find class Metronome");
+        }
+        else{
+            env->CallStaticVoidMethod(c, onBeatMethod, beat);
+        }
+    }
+}
 

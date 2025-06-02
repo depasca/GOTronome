@@ -16,7 +16,7 @@ int getCurrentBeat(JNIEnv* env, jobject thiz) {
     return engine.getCurrentBeat();
 }
 
-bool getIsPLaying(JNIEnv* env, jobject thiz) {
+jboolean getIsPLaying(JNIEnv* env, jobject thiz) {
     return engine.getIisPlaying();
 }
 

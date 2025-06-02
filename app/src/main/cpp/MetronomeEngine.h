@@ -30,11 +30,11 @@ public:
                                           void *audioData,
                                           int32_t numFrames) override;
 
-    bool getIisPlaying();
+    jboolean getIisPlaying();
 
 private:
     std::shared_ptr<oboe::AudioStream> stream;
-    bool isPlaying = false;
+    jboolean isPlaying = false;
     int beatsPerMinute;
     double sampleRate = 48000.0;
     double samplesPerBeat = 0.0;
@@ -43,13 +43,13 @@ private:
     int beatsPerMeasure = 4;
     std::mutex mLock;
 
-//    JavaVM *javaVm = nullptr;
-//    jobject javaCallbackObj = nullptr;
-//    jmethodID onBeatMethod = nullptr;
+    JavaVM *javaVm = nullptr;
+    jobject javaCallbackObj = nullptr;
+    jmethodID onBeatMethod = nullptr;
 
     oboe::Result createStream();
     void generateTick(float *buffer, int32_t numFrames);
-//    void sendBeatToJava(int beat);
+    void sendBeatToJava(int beat);
 
 };
 
