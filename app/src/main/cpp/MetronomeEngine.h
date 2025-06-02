@@ -43,9 +43,9 @@ private:
     int beatsPerMeasure = 4;
     std::mutex mLock;
 
-    JavaVM *javaVm = nullptr;
-    jobject javaCallbackObj = nullptr;
-    jmethodID onBeatMethod = nullptr;
+//    JavaVM *javaVm = nullptr;
+//    jobject javaCallbackObj = nullptr;
+//    jmethodID onBeatMethod = nullptr;
 
     oboe::Result createStream();
     void generateTick(float *buffer, int32_t numFrames);
