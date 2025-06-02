@@ -14,14 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-BeatView"
@@ -30,6 +28,7 @@ private const val TAG = "GOT-BeatView"
 fun BeatView(
     number: Int,
     beatNumber: Int,
+    beatsPerMeasure: Int,
     modifier: Modifier = Modifier,
     context: Context = LocalContext.current
 ){
@@ -58,7 +57,7 @@ fun BeatView(
         Text(
             text = "$number",
             textAlign = TextAlign.Center,
-            fontSize = 120.sp,
+            fontSize = if(beatsPerMeasure > 4) 60.sp else 90.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.secondary,
         )
@@ -72,6 +71,7 @@ fun BeatViewPreview() {
         BeatView(
             number = 1,
             beatNumber = 1,
+            beatsPerMeasure = 4,
         )
     }
 }
