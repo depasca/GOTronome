@@ -31,7 +31,6 @@ google-services.json
 
 # Android Profiling
 *.hprof
-*.iml
 .gradle
 /local.properties
 /.idea/caches
@@ -40,9 +39,15 @@ google-services.json
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+.idea
+
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+
+app/release
+app/debug
+app/build
+
