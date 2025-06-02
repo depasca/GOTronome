@@ -3,8 +3,6 @@
 #include <chrono>
 #include <android/log.h>
 
-#define LOG_TAG "GOTCPP"
-
 MetronomeEngine::MetronomeEngine() {
     isPlaying = false;
     currentBeat = 0;
@@ -14,55 +12,81 @@ MetronomeEngine::~MetronomeEngine() {
     stop();
 }
 
-void MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "MetronomeEngine::start");
+oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
+    std::lock_guard<std::mutex> lock(mLock);
+    LOGD("MetronomeEngine::start");
     this->beatsPerMinute = _beatsPerMinute;
     this->beatsPerMeasure = _beatsPerMeasure;
     samplesPerBeat = (sampleRate * 60.0) / beatsPerMinute;
-    if(!isPlaying) {
-        if (stream) {
-            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "MetronomeEngine::start stream already created!");
-            stream->requestStart();
+
+    oboe::Result result = oboe::Result::OK;
+    int tryCount = 0;
+    do {
+        if (tryCount > 0) {
+            usleep(20 * 1000); // Sleep between tries to give the system time to settle.
         }
-        else {
-            __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "MetronomeEngine::start creating new stream");
-            createStream();
-            if (stream) stream->requestStart();
+        result = createStream();
+        if (result == oboe::Result::OK) {
+            LOGD("MetronomeEngine::start stream created!");
+            result = stream->requestStart();
+            if (result != oboe::Result::OK) {
+                LOGW("Error starting playback stream. Error: %s, attempt num %d",
+                     oboe::convertToText(result), tryCount);
+                stream->close();
+                stream.reset();
+                isPlaying = false;
+            }
+            else {
+                LOGD("MetronomeEngine::start stream started!");
+                isPlaying = true;
+            }
         }
-        isPlaying = true;
+        else{
+            LOGW("Error creating playback stream. Error: %s, attempt num %d",
+                 oboe::convertToText(result), tryCount);
+        }
+
+    } while (result != oboe::Result::OK && tryCount++ < 3);
+    if (result != oboe::Result::OK) {
+        LOGE("Error creating playback stream. Error: %s",
+             oboe::convertToText(result));
     }
+    return result;
 }
 
-void MetronomeEngine::pause() {
-    if (isPlaying) {
-        if (stream) stream->requestPause();
+oboe::Result  MetronomeEngine::stop() {
+    LOGD("MetronomeEngine::stop");
+    oboe::Result result = oboe::Result::OK;
+    // Stop, close and delete in case not already closed.
+    std::lock_guard<std::mutex> lock(mLock);
+    if (stream) {
+        result = stream->stop();
+        stream->close();
+        stream.reset();
         isPlaying = false;
         currentBeat = 0;
     }
-}
-
-void MetronomeEngine::stop() {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "MetronomeEngine::stop");
-    if(isPlaying){
-        if (stream) stream->requestStop();
-        isPlaying = false;
-        currentBeat = 0;
+    if(result != oboe::Result::OK){
+        LOGE("Error stopping playback stream. Error: %s",
+             oboe::convertToText(result));
     }
+    return result;
 }
 
-void MetronomeEngine::createStream() {
+oboe::Result MetronomeEngine::createStream() {
     oboe::AudioStreamBuilder builder;
-    builder.setSharingMode(oboe::SharingMode::Exclusive)
+    oboe::Result result = builder.setSharingMode(oboe::SharingMode::Exclusive)
+            ->setSharingMode(oboe::SharingMode::Exclusive)
             ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
             ->setFormat(oboe::AudioFormat::Float)
             ->setChannelCount(1)
             ->setSampleRate(static_cast<int>(sampleRate))
             ->setCallback(this)
-            ->setDirection(oboe::Direction::Output);
-
-    auto result = builder.openStream(stream);
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "MetronomeEngine::createStream result -> %d", result);
-    if (stream) sampleRate = stream->getSampleRate();
+            ->setDirection(oboe::Direction::Output)
+            ->openStream(stream);
+    LOGD("MetronomeEngine::createStream result -> %d", result);
+    if (result == oboe::Result::OK) sampleRate = stream->getSampleRate();
+    return result;
 }
 
 float envelope(float t, float duration) {
@@ -74,7 +98,7 @@ float envelope(float t, float duration) {
 }
 
 void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
-    __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "MetronomeEngine::generateTick start, numFrames -> %d, currentBeat -> %d", numFrames, currentBeat);
+    LOGD("MetronomeEngine::generateTick start, numFrames -> %d, currentBeat -> %d", numFrames, currentBeat);
     const float tickVolume = 0.3f;
     const float accentVolume = 0.5f;
     const int tickLength = static_cast<int>(sampleRate * 0.01); // 10ms tick
@@ -142,17 +166,17 @@ void MetronomeEngine::setJavaVM(JavaVM *vm, jobject callbackObject) {
     onBeatMethod = env->GetStaticMethodID(cls, "onNativeBeat", "(I)V");
 }
 
-void MetronomeEngine::sendBeatToJava(int beat) {
-    if (javaVm && onBeatMethod) {
-        JNIEnv *env;
-        javaVm->AttachCurrentThread(&env, nullptr);
-        jclass c = env->GetObjectClass(javaCallbackObj);
-        if (c == nullptr) {
-            std::cerr << "GOT-MetronomeEngine Failed to find class Metronome" << std::endl;
-        }
-        else{
-            env->CallStaticVoidMethod(c, onBeatMethod, beat);
-        }
-    }
-}
+//void MetronomeEngine::sendBeatToJava(int beat) {
+//    if (javaVm && onBeatMethod) {
+//        JNIEnv *env;
+//        javaVm->AttachCurrentThread(&env, nullptr);
+//        jclass c = env->GetObjectClass(javaCallbackObj);
+//        if (c == nullptr) {
+//            LOGE("GOT-MetronomeEngine Failed to find class Metronome");
+//        }
+//        else{
+//            env->CallStaticVoidMethod(c, onBeatMethod, beat);
+//        }
+//    }
+//}
 
