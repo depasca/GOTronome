@@ -11,3 +11,16 @@ Oboe is accessed through JNI
 
 
 To compile the app, first get Oboe (https://github.com/google/oboe), then update CMakeLists.txt to point to your local Oboe directory
+
+# Testers wanted!
+GOTronome is currently in closed testing, if you'd like to participate please see below:
+
+1- join google group https://groups.google.com/g/gotronome-closed-testing/members
+
+2- join testing on android: https://play.google.com/store/apps/details?id=com.pdp.gotronome
+
+or on web: https://play.google.com/apps/testing/com.pdp.gotronome
+
+3- try it and and keep it installed for at least 14 days
+
+4- report any issues to the google group - any feedback appreciated!
