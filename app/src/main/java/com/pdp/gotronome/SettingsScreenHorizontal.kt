@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
+import com.pdp.gotronome.components.AppMenu
 import com.pdp.gotronome.components.TimeSignatureSelectorHorizontal
 import com.pdp.gotronome.components.TimeSelectorHorizontal
 
@@ -46,6 +47,7 @@ fun SettingsScreenHorizontal(
             contentAlignment = Alignment.Center
 
         ) {
+            AppMenu({viewModel.setPage("info")})
             Image(
                 imageVector = ImageVector.vectorResource(R.drawable.gotronome_banner),
                 contentDescription = null
@@ -59,19 +61,6 @@ fun SettingsScreenHorizontal(
         ) {
             TimeSignatureSelectorHorizontal(modifier, viewModel)
             TimeSelectorHorizontal(modifier, viewModel)
-            /*
-//        CircularBpmSelector(
-//            modifier = modifier,
-//            onBpmChanged = {}
-//        )
-//        CircularBpmSelectorWithImage(
-//            modifier,
-//            onBpmChanged = {},
-//            gearImageRes = R.drawable.ic_menu_slideshow,
-//        )
-
-     */
-
         }
         Spacer(modifier = Modifier.weight(1.0f))
         Text(

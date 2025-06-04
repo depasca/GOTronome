@@ -16,6 +16,9 @@
       <SelectionState runConfigName="SettingsScreenHorizontalPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="InfoScreenPreviewDark - Info Screen Dark">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>

@@ -10,6 +10,9 @@ private const val TAG = "GOT-MetronomeViewModel"
 open class MetronomeViewModel(): ViewModel(), MetronomeCallback {
     private var _metronome: Metronome? = null
 
+    private val _page = MutableStateFlow<String>("settings")
+    val page: StateFlow<String> = _page
+
     private val _currentBeat = MutableStateFlow<Int>(0)
 
     private val _beatsPerMeasure = MutableStateFlow<Int>(4)
@@ -25,6 +28,10 @@ open class MetronomeViewModel(): ViewModel(), MetronomeCallback {
 
     init {
         _metronome?.setCallback(this)
+    }
+
+    open fun setPage(page: String) {
+        _page.value = page
     }
 
     open fun start() {

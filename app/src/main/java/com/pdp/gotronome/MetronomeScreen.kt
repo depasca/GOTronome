@@ -47,7 +47,7 @@ fun MetronomeScreen(
     val windowMetrics = WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(context as MainActivity)
     val currentBounds = windowMetrics.bounds
     val isLandscape = currentBounds.width() > currentBounds.height()
-    Log.d(TAG, "isLandscape: $isLandscape")
+    val page by viewModel.page.collectAsStateWithLifecycle()
     val beatsPerMeasure by viewModel.beatsPerMeasure.collectAsStateWithLifecycle()
     var isPlaying by remember { mutableStateOf(false) }
     var currentBeat by remember { mutableIntStateOf(0) }
@@ -104,8 +104,14 @@ fun MetronomeScreen(
                             )
                         }
                     } else {
-                        Log.d(TAG, "Metronome Settings horizontal")
-                        SettingsScreenHorizontal(viewModel = viewModel)
+                        when (page) {
+                            "info" -> InfoScreen(handleClick = {
+                                viewModel.setPage("settings")
+                            })
+
+                            else ->
+                                SettingsScreenHorizontal(viewModel = viewModel)
+                        }
                     }
                 }
             } else { // Portrait
@@ -137,8 +143,14 @@ fun MetronomeScreen(
                             )
                         }
                     } else {
-                        Log.d(TAG, "Metronome Settings vertical")
-                        SettingsScreenVertical(viewModel = viewModel)
+                        when (page) {
+                            "info" -> InfoScreen(handleClick = {
+                                viewModel.setPage("settings")
+                            })
+
+                            else ->
+                                SettingsScreenVertical(viewModel = viewModel)
+                        }
                     }
                 }
             }
