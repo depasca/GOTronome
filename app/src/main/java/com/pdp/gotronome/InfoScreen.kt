@@ -81,7 +81,7 @@ fun InfoScreen(
                                 "The GOT band was formed in 2023 by three 9-year-old friends and has performed at school events in front of big and enthusiastic crowds ever since. " +
                                 "When learning a new tune it is useful for the band to practice with a metronome, though most metronomes are not designed for a band setting. " +
                                 "GOTronome is meant to be simple and effective: big bright visuals let all band members see the beats even if they can't hear them - the band rocks much louder than the metronome :-) " +
-                                "We believe that this app can be useful to other musicians, who are looking for a lightweight simple and effective metronome. Therefore we published the app and hope you will enjoy it as we do.",
+                                "We believe that this app can be useful to other musicians, who are looking for a lightweight simple and effective metronome. Therefore we published the app and hope you will enjoy it as much as we do.",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Justify, // Justify for a block-text feel
                         lineHeight = 20.sp
@@ -107,7 +107,7 @@ fun InfoScreen(
                 ) {
                     val githubUrl = "https://github.com/depasca/GOTronome"
                     Text(
-                        text = "Love coding? GOTronome is open source! Check out the source code, contribute, or just see how it's made:",
+                        text = "Love coding? GOTronome is open source! Check out the source code, contribute, suggest features or just see how it's made:",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         lineHeight = 20.sp
