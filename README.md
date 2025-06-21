@@ -1,6 +1,7 @@
 # GOTronome
 Lightweight metronome app in Jetpack Compose with Oboe for real-time audio
 
+The app is on Play Store: https://play.google.com/store/apps/details?id=com.pdp.gotronome&pcampaignid=web_share
 
 This Android app is a simple metronome espressly designed for Band rehearsals: beats are shown in big bright visuals, so that all band members can see them and play in sync. This is especially useful when the sound of the band makes it difficult to hear the metronome's beats.
 
