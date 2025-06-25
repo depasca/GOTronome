@@ -1,7 +1,9 @@
 package com.pdp.gotronome
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,6 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.layout.WindowMetricsCalculator
+import com.google.android.play.core.review.ReviewException
+import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.android.play.core.review.model.ReviewErrorCode
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-MetronomeScreen"
@@ -51,6 +56,8 @@ fun MetronomeScreen(
     val beatsPerMeasure by viewModel.beatsPerMeasure.collectAsStateWithLifecycle()
     var isPlaying by remember { mutableStateOf(false) }
     var currentBeat by remember { mutableIntStateOf(0) }
+    var playedOnce by remember { mutableStateOf(false) }
+    var notReviewed by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -103,14 +110,21 @@ fun MetronomeScreen(
                                 modifier = Modifier.weight(1f)
                             )
                         }
+                        playedOnce = true
                     } else {
-                        when (page) {
-                            "info" -> InfoScreen(handleClick = {
-                                viewModel.setPage("settings")
-                            })
+                        if (playedOnce && notReviewed) {
+                            showInAppREview(context, context)
+                            notReviewed = false
+                        }
+                        else {
+                            when (page) {
+                                "info" -> InfoScreen(handleClick = {
+                                    viewModel.setPage("settings")
+                                })
 
-                            else ->
-                                SettingsScreenHorizontal(viewModel = viewModel)
+                                else ->
+                                    SettingsScreenHorizontal(viewModel = viewModel)
+                            }
                         }
                     }
                 }
@@ -142,20 +156,46 @@ fun MetronomeScreen(
                                 modifier = Modifier.weight(1f)
                             )
                         }
+                        playedOnce = true
                     } else {
-                        when (page) {
-                            "info" -> InfoScreen(handleClick = {
-                                viewModel.setPage("settings")
-                            })
+                        if (playedOnce && notReviewed) {
+                            val manager = ReviewManagerFactory.create(context)
+                            val request = manager.requestReviewFlow()
+                            request.addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val reviewInfo = task.result
+                                    Log.d(TAG, "reviewInfo: $reviewInfo")
+                                    val flow =
+                                        manager.launchReviewFlow(context, reviewInfo)
+                                    flow.addOnCompleteListener { _ ->
+                                        Log.d(TAG, "Review complete")
+                                    }
+                                } else {
+                                    @ReviewErrorCode val reviewErrorCode =
+                                        (task.getException() as ReviewException).errorCode
+                                    Log.d(TAG, "Error: $reviewErrorCode")
+                                }
+                                }
+//                            notReviewed = false
+                        }
+                        else {
+                            when (page) {
+                                "info" -> InfoScreen(handleClick = {
+                                    viewModel.setPage("settings")
+                                })
 
-                            else ->
-                                SettingsScreenVertical(viewModel = viewModel)
+                                else ->
+                                    SettingsScreenVertical(viewModel = viewModel)
+                            }
                         }
                     }
                 }
             }
         }
     }
+}
+
+fun showInAppREview(context: Context, activity: Activity) {
 }
 
 @Preview

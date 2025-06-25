@@ -12,8 +12,8 @@ android {
         applicationId = "com.pdp.gotronome"
         minSdk = 25
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.6.1"
+        versionCode = 8
+        versionName = "1.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
@@ -64,6 +64,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.window)
     implementation(libs.oboe)
+    implementation(libs.review)
+    implementation(libs.reviewktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
