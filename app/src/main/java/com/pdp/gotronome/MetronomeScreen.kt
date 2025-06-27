@@ -98,9 +98,9 @@ fun MetronomeScreen(
                         val flow =
                             manager.launchReviewFlow(context, reviewInfo)
                         flow.addOnCompleteListener { _ ->
-                            Log.d(TAG, "Review complete")
                             viewModel.incrementReviewPromptCounter()
                             viewModel.resetNumRuns()
+                            Log.d(TAG, "Review complete")
                         }
                     } else {
                         @ReviewErrorCode val reviewErrorCode =

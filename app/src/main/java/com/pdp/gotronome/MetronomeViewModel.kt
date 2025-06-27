@@ -94,6 +94,9 @@ open class MetronomeViewModel(
     open fun incrementReviewPromptCounter() {
         viewModelScope.launch {
             userPreferencesRepository.incrementReviewPromptCounter()
+            userPreferencesRepository.reviewPromptCounterFlow.collect { value ->
+                _reviewPromptCounter.value = value
+            }
         }
     }
 

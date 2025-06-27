@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import android.util.Log
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = "settings"
@@ -20,6 +21,11 @@ val counterSequence = sequenceOf(5, 8, 13, 21)
 class UserPreferencesRepository (
     private val context: Context
 ) {
+    val reviewPromptCounterFlow: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[REVIEW_PROMPT_COUNTER] ?: counterSequence.first()
+        }
+
     suspend fun incrementNumRuns() {
         context.dataStore.edit { preferences ->
             val currentNumRuns = preferences[NUM_RUNS] ?: 0
@@ -37,7 +43,9 @@ class UserPreferencesRepository (
         context.dataStore.edit { preferences ->
             var numRuns = preferences[REVIEW_PROMPT_COUNTER] ?: counterSequence.first()
             if(numRuns != counterSequence.last()) {
-                preferences[REVIEW_PROMPT_COUNTER] = counterSequence.first { it > numRuns }
+                preferences[REVIEW_PROMPT_COUNTER] = counterSequence.find {
+                    it > numRuns
+                }?: numRuns
             }
         }
     }
