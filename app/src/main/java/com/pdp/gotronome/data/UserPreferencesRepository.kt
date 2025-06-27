@@ -25,7 +25,7 @@ class UserPreferencesRepository (
             val currentNumRuns = preferences[NUM_RUNS] ?: 0
             preferences[NUM_RUNS] = currentNumRuns + 1
         }
-    }
+   }
 
     suspend fun resetNumRuns() {
         context.dataStore.edit { preferences ->
@@ -37,7 +37,7 @@ class UserPreferencesRepository (
         context.dataStore.edit { preferences ->
             var numRuns = preferences[REVIEW_PROMPT_COUNTER] ?: counterSequence.first()
             if(numRuns != counterSequence.last()) {
-                preferences[REVIEW_PROMPT_COUNTER] = counterSequence.first { it -> it > numRuns }
+                preferences[REVIEW_PROMPT_COUNTER] = counterSequence.first { it > numRuns }
             }
         }
     }
