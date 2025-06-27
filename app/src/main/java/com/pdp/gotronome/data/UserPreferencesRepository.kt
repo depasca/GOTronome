@@ -26,6 +26,11 @@ class UserPreferencesRepository (
             preferences[REVIEW_PROMPT_COUNTER] ?: counterSequence.first()
         }
 
+    val numRunsFlow: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[NUM_RUNS] ?: 0
+        }
+
     suspend fun incrementNumRuns() {
         context.dataStore.edit { preferences ->
             val currentNumRuns = preferences[NUM_RUNS] ?: 0
@@ -41,7 +46,7 @@ class UserPreferencesRepository (
 
     suspend fun incrementReviewPromptCounter() {
         context.dataStore.edit { preferences ->
-            var numRuns = preferences[REVIEW_PROMPT_COUNTER] ?: counterSequence.first()
+            val numRuns = preferences[REVIEW_PROMPT_COUNTER] ?: counterSequence.first()
             if(numRuns != counterSequence.last()) {
                 preferences[REVIEW_PROMPT_COUNTER] = counterSequence.find {
                     it > numRuns

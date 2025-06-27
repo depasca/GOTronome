@@ -41,6 +41,14 @@ open class MetronomeViewModel(
 
     init {
         metronome.setCallback(this)
+        viewModelScope.launch {
+            userPreferencesRepository.reviewPromptCounterFlow.collect { value ->
+                _reviewPromptCounter.value = value
+            }
+            userPreferencesRepository.numRunsFlow.collect { value ->
+                _numRuns.value = value
+            }
+        }
     }
 
     open fun setPage(page: String) {
