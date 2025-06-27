@@ -22,9 +22,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import com.pdp.gotronome.components.AppMenu
+import com.pdp.gotronome.data.UserPreferencesRepository
 
 private const val TAG = "GOT-SettingsScreenVertical"
 
@@ -73,6 +75,10 @@ fun SettingsScreenVertical(
 @Composable
 fun SettingsScreenVerticalPreview() {
     GOTronomeTheme {
-        SettingsScreenVertical(viewModel = MockMetronomeViewModel())
+        SettingsScreenVertical(
+            viewModel = MockMetronomeViewModel(
+                UserPreferencesRepository(LocalContext.current),
+                Metronome()
+            ))
     }
 }

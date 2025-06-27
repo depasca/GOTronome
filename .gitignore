@@ -47,6 +47,8 @@ google-services.json
 .externalNativeBuild
 .cxx
 
+.aab
+.apk
 app/release
 app/debug
 app/build

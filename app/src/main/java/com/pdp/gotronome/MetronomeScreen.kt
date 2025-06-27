@@ -34,6 +34,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.layout.WindowMetricsCalculator
@@ -41,6 +43,7 @@ import com.google.android.play.core.review.ReviewException
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.android.play.core.review.model.ReviewErrorCode
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
+import java.util.prefs.Preferences
 
 private const val TAG = "GOT-MetronomeScreen"
 
@@ -49,15 +52,19 @@ fun MetronomeScreen(
     viewModel: MetronomeViewModel,
     context: Context = LocalContext.current
 ) {
-    val windowMetrics = WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(context as MainActivity)
+    val windowMetrics =
+        WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(context as MainActivity)
     val currentBounds = windowMetrics.bounds
     val isLandscape = currentBounds.width() > currentBounds.height()
     val page by viewModel.page.collectAsStateWithLifecycle()
     val beatsPerMeasure by viewModel.beatsPerMeasure.collectAsStateWithLifecycle()
+    val reviewPromptCounter by viewModel.reviewPromptCounter.collectAsStateWithLifecycle()
+    val numRuns by viewModel.numRuns.collectAsStateWithLifecycle()
+
+    Log.d(TAG, "numRuns, nextReviewPrompt: $numRuns, $reviewPromptCounter")
+
     var isPlaying by remember { mutableStateOf(false) }
     var currentBeat by remember { mutableIntStateOf(0) }
-    var playedOnce by remember { mutableStateOf(false) }
-    var notReviewed by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -82,41 +89,56 @@ fun MetronomeScreen(
                 alignment = Alignment.Center,
                 contentScale = ContentScale.FillHeight
             )
-            if (isLandscape) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(30.dp)
-                        .clickable(
-                            onClick = {
-                                if (isPlaying) {
-                                    viewModel.stop(); Log.d(TAG, "Metronome stopped")
-                                } else {
-                                    viewModel.start(); Log.d(TAG, "Metronome started")
-                                }
-                            },
-                            interactionSource = interactionSource,
-                            indication = ripple(),
-                        ),
-                    verticalAlignment = CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    if (isPlaying) {
-                        for (i in 1..beatsPerMeasure) {
-                            BeatView(
-                                number = i,
-                                beatNumber = currentBeat,
-                                beatsPerMeasure = beatsPerMeasure,
-                                modifier = Modifier.weight(1f)
-                            )
+            if (numRuns >= reviewPromptCounter) {
+                val manager = ReviewManagerFactory.create(context)
+                val request = manager.requestReviewFlow()
+                request.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val reviewInfo = task.result
+                        val flow =
+                            manager.launchReviewFlow(context, reviewInfo)
+                        flow.addOnCompleteListener { _ ->
+                            Log.d(TAG, "Review complete")
+                            viewModel.incrementReviewPromptCounter()
+                            viewModel.resetNumRuns()
                         }
-                        playedOnce = true
                     } else {
-                        if (playedOnce && notReviewed) {
-                            showInAppREview(context, context)
-                            notReviewed = false
-                        }
-                        else {
+                        @ReviewErrorCode val reviewErrorCode =
+                            (task.getException() as ReviewException).errorCode
+                        Log.d(TAG, "Error: $reviewErrorCode")
+                    }
+                }
+            } else {
+                if (isLandscape) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(30.dp)
+                            .clickable(
+                                onClick = {
+                                    if (isPlaying) {
+                                        viewModel.stop(); Log.d(TAG, "Metronome stopped")
+                                        viewModel.incrementNumRuns()
+                                    } else {
+                                        viewModel.start(); Log.d(TAG, "Metronome started")
+                                    }
+                                },
+                                interactionSource = interactionSource,
+                                indication = ripple(),
+                            ),
+                        verticalAlignment = CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        if (isPlaying) {
+                            for (i in 1..beatsPerMeasure) {
+                                BeatView(
+                                    number = i,
+                                    beatNumber = currentBeat,
+                                    beatsPerMeasure = beatsPerMeasure,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        } else {
                             when (page) {
                                 "info" -> InfoScreen(handleClick = {
                                     viewModel.setPage("settings")
@@ -127,58 +149,36 @@ fun MetronomeScreen(
                             }
                         }
                     }
-                }
-            } else { // Portrait
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(30.dp)
-                        .clickable(
-                            onClick = {
-                                if (isPlaying) {
-                                    viewModel.stop(); Log.d(TAG, "Metronome stopped")
-                                } else {
-                                    viewModel.start(); Log.d(TAG, "Metronome started")
-                                }
-                            },
-                            interactionSource = interactionSource,
-                            indication = ripple(),
-                        ),
-                    horizontalAlignment = CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    if (isPlaying) {
-                        for (i in 1..beatsPerMeasure) {
-                            BeatView(
-                                number = i,
-                                beatNumber = currentBeat,
-                                beatsPerMeasure = beatsPerMeasure,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        playedOnce = true
-                    } else {
-                        if (playedOnce && notReviewed) {
-                            val manager = ReviewManagerFactory.create(context)
-                            val request = manager.requestReviewFlow()
-                            request.addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    val reviewInfo = task.result
-                                    Log.d(TAG, "reviewInfo: $reviewInfo")
-                                    val flow =
-                                        manager.launchReviewFlow(context, reviewInfo)
-                                    flow.addOnCompleteListener { _ ->
-                                        Log.d(TAG, "Review complete")
+                } else { // Portrait
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(30.dp)
+                            .clickable(
+                                onClick = {
+                                    if (isPlaying) {
+                                        viewModel.stop(); Log.d(TAG, "Metronome stopped")
+                                        viewModel.incrementNumRuns()
+                                    } else {
+                                        viewModel.start(); Log.d(TAG, "Metronome started")
                                     }
-                                } else {
-                                    @ReviewErrorCode val reviewErrorCode =
-                                        (task.getException() as ReviewException).errorCode
-                                    Log.d(TAG, "Error: $reviewErrorCode")
-                                }
-                                }
-//                            notReviewed = false
-                        }
-                        else {
+                                },
+                                interactionSource = interactionSource,
+                                indication = ripple(),
+                            ),
+                        horizontalAlignment = CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        if (isPlaying) {
+                            for (i in 1..beatsPerMeasure) {
+                                BeatView(
+                                    number = i,
+                                    beatNumber = currentBeat,
+                                    beatsPerMeasure = beatsPerMeasure,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        } else {
                             when (page) {
                                 "info" -> InfoScreen(handleClick = {
                                     viewModel.setPage("settings")

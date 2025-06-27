@@ -2,13 +2,20 @@ package com.pdp.gotronome
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.pdp.gotronome.data.UserPreferencesRepository
+import com.pdp.gotronome.data.counterSequence
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 private const val TAG = "GOT-MetronomeViewModel"
 
-open class MetronomeViewModel(): ViewModel(), MetronomeCallback {
-    private var _metronome: Metronome? = null
+open class MetronomeViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val metronome: Metronome
+): ViewModel(), MetronomeCallback {
 
     private val _page = MutableStateFlow<String>("settings")
     val page: StateFlow<String> = _page
@@ -26,8 +33,14 @@ open class MetronomeViewModel(): ViewModel(), MetronomeCallback {
     private val _selectedTimeSignature = MutableStateFlow<String>(timeSignatures[0])
     val selectedTimeSignature: StateFlow<String> = _selectedTimeSignature
 
+    private val _numRuns = MutableStateFlow<Int>(0)
+    val numRuns: StateFlow<Int> = _numRuns
+
+    private val _reviewPromptCounter = MutableStateFlow<Int>(counterSequence.first())
+    val reviewPromptCounter: StateFlow<Int> = _reviewPromptCounter
+
     init {
-        _metronome?.setCallback(this)
+        metronome.setCallback(this)
     }
 
     open fun setPage(page: String) {
@@ -35,15 +48,15 @@ open class MetronomeViewModel(): ViewModel(), MetronomeCallback {
     }
 
     open fun start() {
-        _metronome!!.startMetronome(_beatsPerMinute.value, _beatsPerMeasure.value)
+        metronome.startMetronome(_beatsPerMinute.value, _beatsPerMeasure.value)
     }
 
     open fun stop() {
-        _metronome!!.stopMetronome()
+        metronome.stopMetronome()
     }
 
     open fun getIsPlaying(): Boolean {
-        return _metronome!!.getIsPLaying()
+        return metronome.getIsPLaying()
     }
 
     override fun onBeat(beatIndex: Int) {
@@ -51,7 +64,7 @@ open class MetronomeViewModel(): ViewModel(), MetronomeCallback {
     }
 
     open fun getCurrentBeat(): Int {
-        _currentBeat.value = _metronome!!.getCurrentBeat()
+        _currentBeat.value = metronome.getCurrentBeat()
         return _currentBeat.value
     }
 
@@ -71,7 +84,37 @@ open class MetronomeViewModel(): ViewModel(), MetronomeCallback {
         _beatsPerMinute.value = value
     }
 
-    fun setMetronome(metronome: Metronome) {
-        _metronome = metronome
+    open fun incrementNumRuns() {
+        viewModelScope.launch {
+            userPreferencesRepository.incrementNumRuns()
+        }
+        _numRuns.value++
+    }
+
+    open fun incrementReviewPromptCounter() {
+        viewModelScope.launch {
+            userPreferencesRepository.incrementReviewPromptCounter()
+        }
+    }
+
+    open fun resetNumRuns() {
+        viewModelScope.launch {
+            userPreferencesRepository.resetNumRuns()
+        }
+        _numRuns.value = 0
+    }
+
+}
+
+class MetronomeViewModelFactory(
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val metronome: Metronome
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(MetronomeViewModel::class.java)) {
+            return MetronomeViewModel(userPreferencesRepository, metronome) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

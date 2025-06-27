@@ -14,12 +14,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pdp.gotronome.Metronome
 import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
+import com.pdp.gotronome.data.UserPreferencesRepository
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -75,6 +78,9 @@ fun TimeSignatureSelectorHorizontal(
 @Composable
 fun TimeSignatureSelectorHorizontalPreview() {
     TimeSignatureSelectorHorizontal(
-        viewModel = MockMetronomeViewModel()
+        viewModel = MockMetronomeViewModel(
+            userPreferencesRepository = UserPreferencesRepository(LocalContext.current),
+            metronome = Metronome()
+        )
     )
 }

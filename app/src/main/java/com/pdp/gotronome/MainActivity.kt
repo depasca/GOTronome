@@ -1,5 +1,6 @@
 package com.pdp.gotronome
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -17,9 +18,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.datastore.dataStore
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.ViewModelProvider
 import androidx.window.layout.WindowMetricsCalculator
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pdp.gotronome.data.UserPreferencesRepository
+
 private const val TAG = "GOT-MainActivity"
 
 class MainActivity : ComponentActivity() {
@@ -43,8 +49,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val metronome: Metronome = Metronome()
-            val viewModel: MetronomeViewModel = viewModel<MetronomeViewModel>()
-            viewModel.setMetronome(metronome)
+            val viewModel: MetronomeViewModel = viewModel(
+                factory = MetronomeViewModelFactory(
+                    UserPreferencesRepository(
+                        LocalContext.current
+                    ),
+                    metronome
+                )
+            )
+//            val viewModel: MetronomeViewModel = viewModel<MetronomeViewModel>()
             GOTronomeTheme {
                 Log.d(TAG, "start")
                 MetronomeScreen(viewModel)

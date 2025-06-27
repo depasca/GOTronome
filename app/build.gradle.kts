@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.oboe)
     implementation(libs.review)
     implementation(libs.reviewktx)
+    implementation(libs.datastorepref)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
