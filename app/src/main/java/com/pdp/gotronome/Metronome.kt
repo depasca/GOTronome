@@ -1,8 +1,6 @@
 package com.pdp.gotronome
 
-import android.content.res.AssetManager
 import android.util.Log
-import java.io.IOException
 
 open class Metronome {
     companion object {

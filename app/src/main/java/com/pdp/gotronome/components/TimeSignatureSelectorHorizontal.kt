@@ -14,16 +14,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.pdp.gotronome.Metronome
 import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
-import com.pdp.gotronome.data.UserPreferencesRepository
 import com.pdp.gotronome.data.timeSignatures
 
 @OptIn(ExperimentalLayoutApi::class)

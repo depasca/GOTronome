@@ -3,7 +3,6 @@ package com.pdp.gotronome
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,8 +33,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.layout.WindowMetricsCalculator
@@ -43,7 +40,6 @@ import com.google.android.play.core.review.ReviewException
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.android.play.core.review.model.ReviewErrorCode
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
-import java.util.prefs.Preferences
 
 private const val TAG = "GOT-MetronomeScreen"
 
@@ -190,9 +186,6 @@ fun MetronomeScreen(
             }
         }
     }
-}
-
-fun showInAppREview(context: Context, activity: Activity) {
 }
 
 @Preview

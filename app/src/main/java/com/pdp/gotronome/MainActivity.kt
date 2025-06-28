@@ -1,30 +1,19 @@
 package com.pdp.gotronome
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.datastore.dataStore
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.ViewModelProvider
-import androidx.window.layout.WindowMetricsCalculator
-import com.pdp.gotronome.ui.theme.GOTronomeTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.data.UserPreferencesRepository
+import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-MainActivity"
 
@@ -48,7 +37,7 @@ class MainActivity : ComponentActivity() {
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         enableEdgeToEdge()
         setContent {
-            val metronome: Metronome = Metronome()
+            val metronome = Metronome()
             val viewModel: MetronomeViewModel = viewModel(
                 factory = MetronomeViewModelFactory(
                     UserPreferencesRepository(
