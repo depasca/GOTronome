@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.components.AppMenu
 import com.pdp.gotronome.data.UserPreferencesRepository
 
@@ -35,7 +36,6 @@ fun SettingsScreenVertical(
     modifier: Modifier = Modifier,
     viewModel: MetronomeViewModel
     ) {
-    Log.d(TAG, "start")
     Column(
         modifier = modifier.fillMaxSize()
             .padding(top = 30.dp, bottom = 30.dp, start = 8.dp, end = 8.dp),
@@ -68,17 +68,12 @@ fun SettingsScreenVertical(
             color = MaterialTheme.colorScheme.secondary,
         )
     }
-    Log.d(TAG, "end")
 }
 
 @Preview(showBackground = true)
 @Composable
 fun SettingsScreenVerticalPreview() {
     GOTronomeTheme {
-        SettingsScreenVertical(
-            viewModel = MockMetronomeViewModel(
-                UserPreferencesRepository(LocalContext.current),
-                Metronome()
-            ))
+        SettingsScreenVertical(viewModel = viewModel<MockMetronomeViewModel>())
     }
 }

@@ -61,8 +61,6 @@ fun MetronomeScreen(
     val reviewPromptCounter by viewModel.reviewPromptCounter.collectAsStateWithLifecycle()
     val numRuns by viewModel.numRuns.collectAsStateWithLifecycle()
 
-    Log.d(TAG, "numRuns, nextReviewPrompt: $numRuns, $reviewPromptCounter")
-
     var isPlaying by remember { mutableStateOf(false) }
     var currentBeat by remember { mutableIntStateOf(0) }
 
@@ -100,12 +98,11 @@ fun MetronomeScreen(
                         flow.addOnCompleteListener { _ ->
                             viewModel.incrementReviewPromptCounter()
                             viewModel.resetNumRuns()
-                            Log.d(TAG, "Review complete")
                         }
                     } else {
                         @ReviewErrorCode val reviewErrorCode =
                             (task.getException() as ReviewException).errorCode
-                        Log.d(TAG, "Error: $reviewErrorCode")
+                        Log.w(TAG, "Error: $reviewErrorCode")
                     }
                 }
             } else {

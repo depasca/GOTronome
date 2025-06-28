@@ -1,6 +1,5 @@
 package com.pdp.gotronome.components
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -16,15 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.pdp.gotronome.Metronome
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
-import com.pdp.gotronome.data.UserPreferencesRepository
+import com.pdp.gotronome.data.timeSignatures
 
 private const val TAG = "GOT-TimeSignatureSelectorVertical"
 
@@ -34,9 +32,8 @@ fun TimeSignatureSelectorVertical(
     modifier: Modifier = Modifier,
     viewModel: MetronomeViewModel,
 ) {
-    val radioOptions = viewModel.timeSignatures
+    val radioOptions = timeSignatures
     val selectedOption by viewModel.selectedTimeSignature.collectAsStateWithLifecycle()
-    Log.d(TAG, "start")
     Column {
         Text(
             text = "TS",
@@ -71,7 +68,6 @@ fun TimeSignatureSelectorVertical(
             }
         }
     }
-    Log.d(TAG, "end")
 }
 
 @Preview(
@@ -81,9 +77,6 @@ fun TimeSignatureSelectorVertical(
 @Composable
 fun TimeSignatureSelectorVerticalPreview() {
     TimeSignatureSelectorVertical(
-        viewModel = MockMetronomeViewModel(
-            userPreferencesRepository = UserPreferencesRepository(LocalContext.current),
-            metronome = Metronome()
-        )
+        viewModel = viewModel<MockMetronomeViewModel>()
     )
 }

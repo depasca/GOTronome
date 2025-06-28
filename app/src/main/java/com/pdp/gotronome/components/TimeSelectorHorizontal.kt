@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.Metronome
 import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
@@ -86,6 +87,7 @@ fun TimeSelectorHorizontal(
             }
         } else {
             rightLongPressed = false // Reset when released
+            viewModel.storeBeatsPerMinute()
         }
     }
 
@@ -152,9 +154,6 @@ fun TimeSelectorHorizontal(
 @Composable
 fun TimeSelectorHorizontalPreview() {
     TimeSelectorHorizontal(
-        viewModel = MockMetronomeViewModel(
-            userPreferencesRepository = UserPreferencesRepository(LocalContext.current),
-            metronome = Metronome()
-        )
+        viewModel = viewModel<MockMetronomeViewModel>()
     )
 }

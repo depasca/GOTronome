@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.Metronome
 import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
@@ -49,7 +50,6 @@ fun TimeSelectorVertical(
     val leftPressed by leftInteractionSource.collectIsPressedAsState()
     val rightPressed by rightInteractionSource.collectIsPressedAsState()
     val viewConfiguration = LocalViewConfiguration.current
-    val lastTimestamp = remember { mutableLongStateOf(System.currentTimeMillis()) }
 
     // State to track if a long press has started to avoid single click trigger on release
     var leftLongPressed by remember { mutableStateOf(false) }
@@ -69,6 +69,7 @@ fun TimeSelectorVertical(
             }
         } else {
             leftLongPressed = false // Reset when released
+            viewModel.storeBeatsPerMinute()
         }
     }
 
@@ -84,6 +85,7 @@ fun TimeSelectorVertical(
                 viewModel.setBeatsPerMinute(value)
                 delay(50) // Adjust this delay to control update speed (e.g., 50ms)
             }
+            viewModel.storeBeatsPerMinute()
         } else {
             rightLongPressed = false // Reset when released
         }
@@ -149,9 +151,6 @@ fun TimeSelectorVertical(
 @Composable
 fun TimeSelectorVerticalPreview() {
     TimeSelectorVertical(
-        viewModel = MockMetronomeViewModel(
-            userPreferencesRepository = UserPreferencesRepository(LocalContext.current),
-            metronome = Metronome()
-        )
+        viewModel = viewModel<MockMetronomeViewModel>()
     )
 }

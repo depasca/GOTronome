@@ -19,10 +19,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.Metronome
 import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
 import com.pdp.gotronome.data.UserPreferencesRepository
+import com.pdp.gotronome.data.timeSignatures
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -30,7 +32,7 @@ fun TimeSignatureSelectorHorizontal(
     modifier: Modifier = Modifier,
     viewModel: MetronomeViewModel,
 ) {
-    val radioOptions = viewModel.timeSignatures
+    val radioOptions = timeSignatures
     val selectedOption by viewModel.selectedTimeSignature.collectAsStateWithLifecycle()
     Row (
         modifier = modifier,
@@ -78,9 +80,6 @@ fun TimeSignatureSelectorHorizontal(
 @Composable
 fun TimeSignatureSelectorHorizontalPreview() {
     TimeSignatureSelectorHorizontal(
-        viewModel = MockMetronomeViewModel(
-            userPreferencesRepository = UserPreferencesRepository(LocalContext.current),
-            metronome = Metronome()
-        )
+        viewModel = viewModel<MockMetronomeViewModel>()
     )
 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.pdp.gotronome.data.UserPreferencesRepository
 import com.pdp.gotronome.data.counterSequence
+import com.pdp.gotronome.data.timeSignatures
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -28,9 +29,8 @@ open class MetronomeViewModel(
     private val _beatsPerMinute = MutableStateFlow<Int>(100)
     open val beatsPerMinute: StateFlow<Int> = _beatsPerMinute
 
-    val timeSignatures = listOf("4/4", "3/4", "2/4", "2/2", "6/8")
 
-    private val _selectedTimeSignature = MutableStateFlow<String>(timeSignatures[0])
+    private val _selectedTimeSignature = MutableStateFlow<String>(timeSignatures.first())
     val selectedTimeSignature: StateFlow<String> = _selectedTimeSignature
 
     private val _numRuns = MutableStateFlow<Int>(0)
@@ -48,6 +48,15 @@ open class MetronomeViewModel(
             userPreferencesRepository.numRunsFlow.collect { value ->
                 _numRuns.value = value
             }
+            userPreferencesRepository.beatsPerMinuteFlow.collect { value ->
+                _beatsPerMinute.value = value
+            }
+            userPreferencesRepository.timeSignatureFlow.collect { value ->
+                _selectedTimeSignature.value = value
+                updateBeatsPerMeasure()
+            }
+            Log.d(TAG, "MetronomeViewModel created! with beats per minute: ${_beatsPerMinute.value}, " +
+                    "beats per measure: ${_beatsPerMeasure.value}")
         }
     }
 
@@ -78,7 +87,16 @@ open class MetronomeViewModel(
 
     open fun setTimeSignature(timeSignature: String) {
         _selectedTimeSignature.value = timeSignature
-        _beatsPerMeasure.value = when (timeSignature) {
+        updateBeatsPerMeasure()
+
+        viewModelScope.launch {
+            Log.d(TAG, "Setting beats per measure to: ${_beatsPerMeasure.value}")
+            userPreferencesRepository.setTimeSignature(_selectedTimeSignature.value)
+        }
+    }
+
+    fun updateBeatsPerMeasure() {
+        _beatsPerMeasure.value = when (_selectedTimeSignature.value) {
             "4/4" -> 4
             "3/4" -> 3
             "2/4" -> 2
@@ -90,6 +108,13 @@ open class MetronomeViewModel(
 
     open fun setBeatsPerMinute(value: Int) {
         _beatsPerMinute.value = value
+    }
+
+    fun storeBeatsPerMinute() {
+        viewModelScope.launch {
+            Log.d(TAG, "Setting beats per minute to: ${_beatsPerMinute.value}")
+            userPreferencesRepository.setBeatsPerMinute(_beatsPerMinute.value)
+        }
     }
 
     open fun incrementNumRuns() {
@@ -114,6 +139,7 @@ open class MetronomeViewModel(
         }
         _numRuns.value = 0
     }
+
 
 }
 

@@ -41,7 +41,6 @@ fun BeatView(
         1 -> MaterialTheme.colorScheme.tertiary
         else -> MaterialTheme.colorScheme.primary
     }
-    Log.d(TAG, "Beat number: $number/${beatNumber}, color: $color")
     Box(
         modifier = modifier.padding(8.dp)
             .fillMaxSize()
