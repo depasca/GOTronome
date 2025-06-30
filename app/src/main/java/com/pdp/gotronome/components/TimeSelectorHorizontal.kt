@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,6 +33,8 @@ import kotlinx.coroutines.delay
 import kotlin.math.max
 import kotlin.math.min
 
+private const val TAG = "GOT-Settings"
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TimeSelectorHorizontal(
@@ -50,10 +51,12 @@ fun TimeSelectorHorizontal(
     // State to track if a long press has started to avoid single click trigger on release
     var leftLongPressed by remember { mutableStateOf(false) }
     var rightLongPressed by remember { mutableStateOf(false) }
+    var bpmChanged by remember { mutableStateOf(false) }
 
     // Left Button Long Press Logic
     LaunchedEffect(leftPressed) {
         if (leftPressed) {
+            bpmChanged = true
             leftLongPressed = false // Reset long press state on new press
             delay(viewConfiguration.longPressTimeoutMillis) // Initial delay
             leftLongPressed = true // Mark as long press after initial delay
@@ -65,12 +68,17 @@ fun TimeSelectorHorizontal(
             }
         } else {
             leftLongPressed = false // Reset when released
+            if (bpmChanged) {
+                viewModel.storeBeatsPerMinute()
+                bpmChanged = false
+            }
         }
     }
 
     // Right Button Long Press Logic
     LaunchedEffect(rightPressed) {
         if (rightPressed) {
+            bpmChanged = true
             rightLongPressed = false // Reset long press state on new press
             delay(viewConfiguration.longPressTimeoutMillis) // Initial delay
             rightLongPressed = true // Mark as long press after initial delay
@@ -82,7 +90,10 @@ fun TimeSelectorHorizontal(
             }
         } else {
             rightLongPressed = false // Reset when released
-            viewModel.storeBeatsPerMinute()
+            if (bpmChanged) {
+                viewModel.storeBeatsPerMinute()
+                bpmChanged = false
+            }
         }
     }
 

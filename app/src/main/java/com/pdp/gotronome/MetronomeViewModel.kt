@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-private const val TAG = "GOT-MetronomeViewModel"
+private const val TAG = "GOT-Settings"
 
 open class MetronomeViewModel(
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -40,24 +40,36 @@ open class MetronomeViewModel(
     val reviewPromptCounter: StateFlow<Int> = _reviewPromptCounter
 
     init {
+        Log.d(TAG, "MetronomeViewModel init")
         metronome.setCallback(this)
         viewModelScope.launch {
+            Log.d(TAG, "Collecting user preferences")
             userPreferencesRepository.reviewPromptCounterFlow.collect { value ->
+                Log.d(TAG, "Init ->Review prompt counter: $value")
                 _reviewPromptCounter.value = value
             }
+        }
+        viewModelScope.launch {
+
             userPreferencesRepository.numRunsFlow.collect { value ->
+                Log.d(TAG, "Init ->Num runs: $value")
                 _numRuns.value = value
             }
+        }
+        viewModelScope.launch {
             userPreferencesRepository.beatsPerMinuteFlow.collect { value ->
+                Log.d(TAG, "Init ->Beats per minute: $value")
                 _beatsPerMinute.value = value
             }
+        }
+        viewModelScope.launch {
             userPreferencesRepository.timeSignatureFlow.collect { value ->
+                Log.d(TAG, "Init -> Time signature: $value")
                 _selectedTimeSignature.value = value
                 updateBeatsPerMeasure()
             }
-            Log.d(TAG, "MetronomeViewModel created! with beats per minute: ${_beatsPerMinute.value}, " +
-                    "beats per measure: ${_beatsPerMeasure.value}")
         }
+        Log.d(TAG, "MetronomeViewModel init done")
     }
 
     open fun setPage(page: String) {
@@ -112,7 +124,6 @@ open class MetronomeViewModel(
 
     fun storeBeatsPerMinute() {
         viewModelScope.launch {
-            Log.d(TAG, "Setting beats per minute to: ${_beatsPerMinute.value}")
             userPreferencesRepository.setBeatsPerMinute(_beatsPerMinute.value)
         }
     }

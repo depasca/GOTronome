@@ -1,6 +1,5 @@
 package com.pdp.gotronome
 
-import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -28,9 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,7 +42,7 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.android.play.core.review.model.ReviewErrorCode
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
-private const val TAG = "GOT-MetronomeScreen"
+private const val TAG = "GOT-Settings"
 
 @Composable
 fun MetronomeScreen(
@@ -84,6 +85,11 @@ fun MetronomeScreen(
                 contentScale = ContentScale.FillHeight
             )
             if (numRuns >= reviewPromptCounter) {
+                Log.d(TAG, "Showing review prompt. numRuns $numRuns, review counter $reviewPromptCounter")
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.gotronome_icon),
+                    contentDescription = "GOTronome banner"
+                )
                 val manager = ReviewManagerFactory.create(context)
                 val request = manager.requestReviewFlow()
                 request.addOnCompleteListener { task ->

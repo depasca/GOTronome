@@ -1,5 +1,6 @@
 package com.pdp.gotronome.components
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -34,6 +35,8 @@ import kotlinx.coroutines.delay
 import kotlin.math.max
 import kotlin.math.min
 
+private const val TAG = "GOT-Settings"
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TimeSelectorVertical(
@@ -50,10 +53,12 @@ fun TimeSelectorVertical(
     // State to track if a long press has started to avoid single click trigger on release
     var leftLongPressed by remember { mutableStateOf(false) }
     var rightLongPressed by remember { mutableStateOf(false) }
+    var bpmChanged by remember { mutableStateOf(false) }
 
     // Left Button Long Press Logic
     LaunchedEffect(leftPressed) {
         if (leftPressed) {
+            bpmChanged = true
             leftLongPressed = false // Reset long press state on new press
             delay(viewConfiguration.longPressTimeoutMillis) // Initial delay
             leftLongPressed = true // Mark as long press after initial delay
@@ -65,13 +70,17 @@ fun TimeSelectorVertical(
             }
         } else {
             leftLongPressed = false // Reset when released
-            viewModel.storeBeatsPerMinute()
+            if (bpmChanged) {
+                viewModel.storeBeatsPerMinute()
+                bpmChanged = false
+            }
         }
     }
 
     // Right Button Long Press Logic
     LaunchedEffect(rightPressed) {
         if (rightPressed) {
+            bpmChanged = true
             rightLongPressed = false // Reset long press state on new press
             delay(viewConfiguration.longPressTimeoutMillis) // Initial delay
             rightLongPressed = true // Mark as long press after initial delay
@@ -81,9 +90,14 @@ fun TimeSelectorVertical(
                 viewModel.setBeatsPerMinute(value)
                 delay(50) // Adjust this delay to control update speed (e.g., 50ms)
             }
+            Log.d(TAG, "Saving BPM: $beatsPeerMinute")
             viewModel.storeBeatsPerMinute()
         } else {
             rightLongPressed = false // Reset when released
+            if (bpmChanged) {
+                viewModel.storeBeatsPerMinute()
+                bpmChanged = false
+            }
         }
     }
 

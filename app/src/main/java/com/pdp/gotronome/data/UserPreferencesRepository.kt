@@ -1,6 +1,7 @@
 package com.pdp.gotronome.data
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -9,6 +10,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+
+private const val TAG = "GOT-Settings"
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = "settings"
@@ -70,6 +73,7 @@ class UserPreferencesRepository (
     }
 
     suspend fun setBeatsPerMinute(bpm: Int) {
+        Log.d(TAG, "setBeatsPerMinute: $bpm")
         context.dataStore.edit { preferences ->
             preferences[BEATS_PER_MINUTE] = bpm
         }
