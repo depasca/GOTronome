@@ -40,6 +40,10 @@ import androidx.window.layout.WindowMetricsCalculator
 import com.google.android.play.core.review.ReviewException
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.android.play.core.review.model.ReviewErrorCode
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.android.play.core.install.model.AppUpdateType
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
@@ -47,10 +51,12 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.registerForActivityResult
 import android.app.Activity.RESULT_OK
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
+import androidx.compose.material3.Text
 
 private const val TAG = "GOT-Settings"
 
@@ -72,12 +78,14 @@ fun MetronomeScreen(
 
     var isPlaying by remember { mutableStateOf(false) }
     var currentBeat by remember { mutableIntStateOf(0) }
+    var currentBar by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         while (true) {
             withFrameNanos {
                 isPlaying = viewModel.getIsPlaying()
                 currentBeat = viewModel.getCurrentBeat()
+                currentBar = viewModel.getCurrentBar()
             }
         }
     }
@@ -96,6 +104,19 @@ fun MetronomeScreen(
                 alignment = Alignment.Center,
                 contentScale = ContentScale.FillHeight
             )
+
+            // check for app updates
+//            val appUpdateManager = AppUpdateManagerFactory.create(context)
+//            val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+//            appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+//                if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+//                    && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
+//                ) {
+//                    runUpdateFlow(appUpdateInfo, appUpdateManager)
+//                }
+//            }
+
+            //in-app review logic
             if (numRuns >= reviewPromptCounter) {
                 Log.d(TAG, "Showing review prompt. numRuns $numRuns, review counter $reviewPromptCounter")
                 Image(
@@ -161,62 +182,84 @@ fun MetronomeScreen(
                         }
                     }
                 } else { // Portrait
-                    Row {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(30.dp)
-                                .clickable(
-                                    onClick = {
-                                        if (isPlaying) {
-                                            viewModel.stop(); Log.d(TAG, "Metronome stopped")
-                                            viewModel.incrementNumRuns()
-                                        } else {
-                                            viewModel.start(); Log.d(TAG, "Metronome started")
-                                        }
-                                    },
-                                    interactionSource = interactionSource,
-                                    indication = ripple(),
-                                ),
-                            horizontalAlignment = CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            if (isPlaying) {
-                                for (i in 1..beatsPerMeasure) {
-                                    BeatView(
-                                        number = i,
-                                        beatNumber = currentBeat,
-                                        beatsPerMeasure = beatsPerMeasure,
-                                        modifier = Modifier.weight(1f)
-                                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(30.dp)
+                            .clickable(
+                                onClick = {
+                                    if (isPlaying) {
+                                        viewModel.stop(); Log.d(TAG, "Metronome stopped")
+                                        viewModel.incrementNumRuns()
+                                    } else {
+                                        viewModel.start(); Log.d(TAG, "Metronome started")
+                                    }
+                                },
+                                interactionSource = interactionSource,
+                                indication = ripple(),
+                            ),
+                        horizontalAlignment = CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        if (isPlaying) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = CenterVertically
+                            )
+                            {
+                                Column(
+                                    modifier = Modifier.weight(3f),
+                                )
+                                {
+                                    for (i in 1..beatsPerMeasure) {
+                                        BeatView(
+                                            number = i,
+                                            beatNumber = currentBeat,
+                                            beatsPerMeasure = beatsPerMeasure,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
                                 }
-                            } else {
-                                when (page) {
-                                    "info" -> InfoScreen(handleClick = {
-                                        viewModel.setPage("settings")
-                                    })
+                                if (showBars) {
+                                    Column(
+                                        modifier = Modifier.weight(1f).fillMaxHeight().padding(4.dp)
+                                    ) {
+                                        for (i in 1..numBars) {
+                                            var bgColor = MaterialTheme.colorScheme.background
+                                            if(i == currentBar) {
+                                                bgColor = MaterialTheme.colorScheme.primary
+                                            }
+                                            Box(
+                                                modifier = Modifier.padding(2.dp)
+                                                    .weight(1f)
+                                                    .fillMaxWidth()
+                                                    .border(
+                                                        width = 2.dp,
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                    )
+                                                    .background(bgColor),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Text(
+                                                    text = i.toString(),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
 
-                                    else ->
-                                        SettingsScreenVertical(viewModel = viewModel)
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        }
-                        if(showBars){
-                            Column {
-                                for (i in 1..numBars) {
-                                    Box(
-                                        modifier = Modifier.padding(8.dp)
-                                            .fillMaxSize()
-                                            .border(
-                                                width = 4.dp,
-                                                color = MaterialTheme.colorScheme.primary,
-                                                shape = RoundedCornerShape(16.dp)
-                                            )
-                                            .clip(RoundedCornerShape(16.dp))
-                                            .background(MaterialTheme.colorScheme.background),
-                                        contentAlignment = Alignment.Center,
-                                    ){}
-                                }
+                        } else {
+                            when (page) {
+                                "info" -> InfoScreen(handleClick = {
+                                    viewModel.setPage("settings")
+                                })
+
+                                else ->
+                                    SettingsScreenVertical(viewModel = viewModel)
                             }
                         }
                     }
@@ -225,6 +268,25 @@ fun MetronomeScreen(
         }
     }
 }
+
+//fun runUpdateFlow(appUpdateInfo: AppUpdateInfo, appUpdateManager: AppUpdateManager) {
+//
+//    Log.i(TAG, "Update available")
+//    val activityResultLauncher = registerForActivityResult(StartIntentSenderForResult()) { result: ActivityResult ->
+//        // handle callback
+//        if (result.resultCode != RESULT_OK) {
+//            Log.w("Update flow failed! Result code: " + result.resultCode);
+//            // If the update is canceled or fails,
+//            // you can request to start the update again.
+//        }
+//    }
+//    appUpdateManager.startUpdateFlowForResult(
+//        appUpdateInfo,
+//        activityResultLauncher,
+//        AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build()
+//    )
+//}
+
 
 @Preview
 @Composable

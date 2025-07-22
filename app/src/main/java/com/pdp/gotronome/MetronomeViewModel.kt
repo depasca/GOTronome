@@ -22,6 +22,7 @@ open class MetronomeViewModel(
     val page: StateFlow<String> = _page
 
     private val _currentBeat = MutableStateFlow<Int>(0)
+    private val _currentBar = MutableStateFlow<Int>(0)
 
     private val _beatsPerMeasure = MutableStateFlow<Int>(4)
     val beatsPerMeasure: StateFlow<Int> = _beatsPerMeasure
@@ -99,6 +100,8 @@ open class MetronomeViewModel(
 
     open fun stop() {
         metronome.stopMetronome()
+        _currentBeat.value = 0
+        _currentBar.value = 0
     }
 
     open fun getIsPlaying(): Boolean {
@@ -110,8 +113,19 @@ open class MetronomeViewModel(
     }
 
     open fun getCurrentBeat(): Int {
+        val prevBeat = _currentBeat.value
         _currentBeat.value = metronome.getCurrentBeat()
+        if(prevBeat != _currentBeat.value && _currentBeat.value == 1) {
+            _currentBar.value++
+            if(_currentBar.value > _numBars.value) {
+                _currentBar.value = 1
+            }
+        }
         return _currentBeat.value
+    }
+
+    fun getCurrentBar(): Int {
+        return _currentBar.value
     }
 
     open fun setTimeSignature(timeSignature: String) {
@@ -184,8 +198,6 @@ open class MetronomeViewModel(
         }
         _numRuns.value = 0
     }
-
-
 }
 
 class MetronomeViewModelFactory(
