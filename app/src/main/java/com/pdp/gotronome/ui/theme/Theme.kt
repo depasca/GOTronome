@@ -18,6 +18,8 @@ private val GOTDarkColorScheme = darkColorScheme(
     secondary = GOTWhite,
     tertiary = GOTDarkOrange,
     background = GOTBlack,
+    surface = GOTDarkGrey,
+    onSurface = GOTLightOrange
 )
 
 private val GOTLightColorScheme = lightColorScheme(
@@ -25,6 +27,8 @@ private val GOTLightColorScheme = lightColorScheme(
     secondary = GOTBlack,
     tertiary = GOTDarkOrange,
     background = GOTWhite,
+    surface = GOTLightGrey,
+    onSurface = GOTLightOrange
 )
 
 @Composable

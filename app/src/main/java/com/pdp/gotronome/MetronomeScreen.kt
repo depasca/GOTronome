@@ -6,7 +6,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -51,6 +50,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.registerForActivityResult
 import android.app.Activity.RESULT_OK
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
@@ -203,13 +203,15 @@ fun MetronomeScreen(
                     ) {
                         if (isPlaying) {
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(8.dp),
-                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = CenterVertically
                             )
                             {
                                 Column(
-                                    modifier = Modifier.weight(3f),
+                                    modifier = Modifier.weight(4f),
                                 )
                                 {
                                     for (i in 1..beatsPerMeasure) {
@@ -226,9 +228,11 @@ fun MetronomeScreen(
                                         modifier = Modifier.weight(1f).fillMaxHeight().padding(4.dp)
                                     ) {
                                         for (i in 1..numBars) {
-                                            var bgColor = MaterialTheme.colorScheme.background
+                                            var bgColor = MaterialTheme.colorScheme.surface
+                                            var textColor = MaterialTheme.colorScheme.primary
                                             if(i == currentBar) {
                                                 bgColor = MaterialTheme.colorScheme.primary
+                                                textColor = MaterialTheme.colorScheme.secondary
                                             }
                                             Box(
                                                 modifier = Modifier.padding(2.dp)
@@ -236,15 +240,17 @@ fun MetronomeScreen(
                                                     .fillMaxWidth()
                                                     .border(
                                                         width = 2.dp,
-                                                        color = MaterialTheme.colorScheme.primary,
+                                                        color = bgColor,
+                                                        shape = RoundedCornerShape(8.dp)
                                                     )
+                                                    .clip(RoundedCornerShape(8.dp))
                                                     .background(bgColor),
                                                 contentAlignment = Alignment.Center,
                                             ) {
                                                 Text(
                                                     text = i.toString(),
                                                     style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.primary
+                                                    color = textColor,
                                                 )
 
                                             }
