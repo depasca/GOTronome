@@ -90,8 +90,6 @@ fun TimeSelectorVertical(
                 viewModel.setBeatsPerMinute(value)
                 delay(50) // Adjust this delay to control update speed (e.g., 50ms)
             }
-            Log.d(TAG, "Saving BPM: $beatsPeerMinute")
-            viewModel.storeBeatsPerMinute()
         } else {
             rightLongPressed = false // Reset when released
             if (bpmChanged) {

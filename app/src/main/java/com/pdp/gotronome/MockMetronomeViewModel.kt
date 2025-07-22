@@ -11,7 +11,7 @@ class MockMetronomeViewModel(
     userPreferencesRepository, metronome
 ) {
     override val beatsPerMinute: StateFlow<Int> = MutableStateFlow(120)
-    override fun setBeatsPerMinute(bpm: Int) {}
+    override fun setBeatsPerMinute(value: Int) {}
     override fun setTimeSignature(timeSignature: String) {}
     override fun start() {}
     override fun stop() {}
@@ -19,4 +19,6 @@ class MockMetronomeViewModel(
     override fun incrementNumRuns(){}
     override fun incrementReviewPromptCounter() {}
     override fun resetNumRuns() {}
+    override fun setShowBars(value: Boolean) {}
+    override fun setNumBars(value: Int) {}
 }

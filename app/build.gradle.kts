@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.pdp.gotronome"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.pdp.gotronome"
         minSdk = 25
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 10
         versionName = "1.8.1"
 
@@ -42,7 +42,7 @@ android {
     buildFeatures {
         compose = true
     }
-    buildToolsVersion = "35.0.0"
+    buildToolsVersion = "36.0.0"
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
@@ -66,6 +66,8 @@ dependencies {
     implementation(libs.oboe)
     implementation(libs.review)
     implementation(libs.reviewktx)
+    implementation(libs.update)
+    implementation(libs.updatektx)
     implementation(libs.datastorepref)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

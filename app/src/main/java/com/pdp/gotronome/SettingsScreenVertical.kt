@@ -25,6 +25,7 @@ import com.pdp.gotronome.components.AppMenu
 import com.pdp.gotronome.components.TimeSelectorVertical
 import com.pdp.gotronome.components.TimeSignatureSelectorVertical
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
+import com.pdp.gotronome.components.NumBarSelectorVertical
 
 private const val TAG = "GOT-SettingsScreenVertical"
 
@@ -56,6 +57,8 @@ fun SettingsScreenVertical(
         TimeSignatureSelectorVertical(modifier, viewModel)
         Spacer(modifier = Modifier.weight(0.5f))
         TimeSelectorVertical(modifier, viewModel)
+        Spacer(modifier = Modifier.weight(1.0f))
+        NumBarSelectorVertical(modifier, viewModel)
         Spacer(modifier = Modifier.weight(1.0f))
         Text(
             modifier = Modifier.fillMaxWidth(),

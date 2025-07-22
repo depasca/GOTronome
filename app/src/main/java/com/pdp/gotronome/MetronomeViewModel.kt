@@ -29,7 +29,6 @@ open class MetronomeViewModel(
     private val _beatsPerMinute = MutableStateFlow<Int>(100)
     open val beatsPerMinute: StateFlow<Int> = _beatsPerMinute
 
-
     private val _selectedTimeSignature = MutableStateFlow<String>(timeSignatures.first())
     val selectedTimeSignature: StateFlow<String> = _selectedTimeSignature
 
@@ -38,6 +37,12 @@ open class MetronomeViewModel(
 
     private val _reviewPromptCounter = MutableStateFlow<Int>(counterSequence.first())
     val reviewPromptCounter: StateFlow<Int> = _reviewPromptCounter
+
+    private val _showBars = MutableStateFlow<Boolean>(false)
+    val showBars: StateFlow<Boolean> = _showBars
+
+    private val _numBars = MutableStateFlow<Int>(4)
+    val numBars: StateFlow<Int> = _numBars
 
     init {
         Log.d(TAG, "MetronomeViewModel init")
@@ -67,6 +72,18 @@ open class MetronomeViewModel(
                 Log.d(TAG, "Init -> Time signature: $value")
                 _selectedTimeSignature.value = value
                 updateBeatsPerMeasure()
+            }
+        }
+        viewModelScope.launch {
+            userPreferencesRepository.showBarsFlow.collect { value ->
+                Log.d(TAG, "Init -> Show bars: $value")
+                _showBars.value = value
+            }
+        }
+        viewModelScope.launch {
+            userPreferencesRepository.numBarsFlow.collect { value ->
+                Log.d(TAG, "Init -> Num bars: $value")
+                _numBars.value = value
             }
         }
         Log.d(TAG, "MetronomeViewModel init done")
@@ -122,9 +139,26 @@ open class MetronomeViewModel(
         _beatsPerMinute.value = value
     }
 
+    open fun setShowBars(value: Boolean) {
+        _showBars.value = value
+        viewModelScope.launch {
+            userPreferencesRepository.setShowBars(_showBars.value)
+        }
+    }
+
+    open fun setNumBars(value: Int) {
+        _numBars.value = value
+    }
+
     fun storeBeatsPerMinute() {
         viewModelScope.launch {
             userPreferencesRepository.setBeatsPerMinute(_beatsPerMinute.value)
+        }
+    }
+
+    fun storeNumBars(){
+        viewModelScope.launch {
+            userPreferencesRepository.setNumBars(_numBars.value)
         }
     }
 

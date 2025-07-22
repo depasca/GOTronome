@@ -29,7 +29,6 @@ fun BeatView(
     beatNumber: Int,
     beatsPerMeasure: Int,
     modifier: Modifier = Modifier,
-    context: Context = LocalContext.current
 ){
     val color = when (number) {
         beatNumber ->  if (beatNumber == 1)

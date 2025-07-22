@@ -41,6 +41,16 @@ import com.google.android.play.core.review.ReviewException
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.android.play.core.review.model.ReviewErrorCode
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.registerForActivityResult
+import android.app.Activity.RESULT_OK
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import com.google.android.play.core.appupdate.AppUpdateInfo
+import com.google.android.play.core.appupdate.AppUpdateManager
 
 private const val TAG = "GOT-Settings"
 
@@ -57,6 +67,8 @@ fun MetronomeScreen(
     val beatsPerMeasure by viewModel.beatsPerMeasure.collectAsStateWithLifecycle()
     val reviewPromptCounter by viewModel.reviewPromptCounter.collectAsStateWithLifecycle()
     val numRuns by viewModel.numRuns.collectAsStateWithLifecycle()
+    val showBars by viewModel.showBars.collectAsStateWithLifecycle()
+    val numBars by viewModel.numBars.collectAsStateWithLifecycle()
 
     var isPlaying by remember { mutableStateOf(false) }
     var currentBeat by remember { mutableIntStateOf(0) }
@@ -149,42 +161,62 @@ fun MetronomeScreen(
                         }
                     }
                 } else { // Portrait
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(30.dp)
-                            .clickable(
-                                onClick = {
-                                    if (isPlaying) {
-                                        viewModel.stop(); Log.d(TAG, "Metronome stopped")
-                                        viewModel.incrementNumRuns()
-                                    } else {
-                                        viewModel.start(); Log.d(TAG, "Metronome started")
-                                    }
-                                },
-                                interactionSource = interactionSource,
-                                indication = ripple(),
-                            ),
-                        horizontalAlignment = CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        if (isPlaying) {
-                            for (i in 1..beatsPerMeasure) {
-                                BeatView(
-                                    number = i,
-                                    beatNumber = currentBeat,
-                                    beatsPerMeasure = beatsPerMeasure,
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                        } else {
-                            when (page) {
-                                "info" -> InfoScreen(handleClick = {
-                                    viewModel.setPage("settings")
-                                })
+                    Row {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(30.dp)
+                                .clickable(
+                                    onClick = {
+                                        if (isPlaying) {
+                                            viewModel.stop(); Log.d(TAG, "Metronome stopped")
+                                            viewModel.incrementNumRuns()
+                                        } else {
+                                            viewModel.start(); Log.d(TAG, "Metronome started")
+                                        }
+                                    },
+                                    interactionSource = interactionSource,
+                                    indication = ripple(),
+                                ),
+                            horizontalAlignment = CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            if (isPlaying) {
+                                for (i in 1..beatsPerMeasure) {
+                                    BeatView(
+                                        number = i,
+                                        beatNumber = currentBeat,
+                                        beatsPerMeasure = beatsPerMeasure,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            } else {
+                                when (page) {
+                                    "info" -> InfoScreen(handleClick = {
+                                        viewModel.setPage("settings")
+                                    })
 
-                                else ->
-                                    SettingsScreenVertical(viewModel = viewModel)
+                                    else ->
+                                        SettingsScreenVertical(viewModel = viewModel)
+                                }
+                            }
+                        }
+                        if(showBars){
+                            Column {
+                                for (i in 1..numBars) {
+                                    Box(
+                                        modifier = Modifier.padding(8.dp)
+                                            .fillMaxSize()
+                                            .border(
+                                                width = 4.dp,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                shape = RoundedCornerShape(16.dp)
+                                            )
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(MaterialTheme.colorScheme.background),
+                                        contentAlignment = Alignment.Center,
+                                    ){}
+                                }
                             }
                         }
                     }

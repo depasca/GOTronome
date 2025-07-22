@@ -46,11 +46,8 @@ class MainActivity : ComponentActivity() {
                     metronome
                 )
             )
-//            val viewModel: MetronomeViewModel = viewModel<MetronomeViewModel>()
             GOTronomeTheme {
-                Log.d(TAG, "start")
                 MetronomeScreen(viewModel)
-                Log.d(TAG, "end")
             }
         }
     }

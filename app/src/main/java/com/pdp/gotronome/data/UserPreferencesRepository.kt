@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -20,6 +21,8 @@ val NUM_RUNS = intPreferencesKey("num_runs")
 val REVIEW_PROMPT_COUNTER = intPreferencesKey("review_prompt_counter")
 val BEATS_PER_MINUTE = intPreferencesKey("beats_per_minute")
 val TIME_SIGNATURE = stringPreferencesKey("time_signature")
+val SHOW_BARS = booleanPreferencesKey("show_bars")
+val NUM_BARS = intPreferencesKey("num_bars")
 
 val counterSequence = sequenceOf(5, 8, 13, 21)
 val timeSignatures = listOf("4/4", "3/4", "2/4", "2/2", "6/8")
@@ -46,6 +49,16 @@ class UserPreferencesRepository (
         .map {
             preferences ->
             (preferences[TIME_SIGNATURE] ?: timeSignatures.first())
+        }
+
+    val showBarsFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[SHOW_BARS] ?: false
+        }
+
+    val numBarsFlow: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[NUM_BARS] ?: 4
         }
 
     suspend fun incrementNumRuns() {
@@ -84,5 +97,18 @@ class UserPreferencesRepository (
             preferences[TIME_SIGNATURE] = ts
         }
     }
+
+    suspend fun setShowBars(showBars: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[SHOW_BARS] = showBars
+        }
+    }
+
+    suspend fun setNumBars(numBars: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[NUM_BARS] = numBars
+        }
+    }
+
 
 }
