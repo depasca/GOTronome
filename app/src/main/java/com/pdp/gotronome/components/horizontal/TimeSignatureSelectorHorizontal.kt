@@ -1,4 +1,4 @@
-package com.pdp.gotronome.components
+package com.pdp.gotronome.components.horizontal
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow

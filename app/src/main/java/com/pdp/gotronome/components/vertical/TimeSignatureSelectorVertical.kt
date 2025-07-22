@@ -1,4 +1,4 @@
-package com.pdp.gotronome.components
+package com.pdp.gotronome.components.vertical
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi

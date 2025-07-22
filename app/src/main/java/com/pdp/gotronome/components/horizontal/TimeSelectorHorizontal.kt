@@ -1,4 +1,4 @@
-package com.pdp.gotronome.components
+package com.pdp.gotronome.components.horizontal
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
