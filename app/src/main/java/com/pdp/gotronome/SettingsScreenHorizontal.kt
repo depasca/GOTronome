@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.components.AppMenu
+import com.pdp.gotronome.components.NumBarSelectorHorizontal
 import com.pdp.gotronome.components.TimeSelectorHorizontal
 import com.pdp.gotronome.components.TimeSignatureSelectorHorizontal
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
@@ -46,7 +48,7 @@ fun SettingsScreenHorizontal(
             contentAlignment = Alignment.Center
 
         ) {
-            AppMenu({viewModel.setPage("info")})
+            AppMenu({ viewModel.setPage("info") })
             Image(
                 imageVector = ImageVector.vectorResource(R.drawable.gotronome_banner),
                 contentDescription = null
@@ -59,7 +61,10 @@ fun SettingsScreenHorizontal(
             horizontalAlignment = Alignment.Start,
         ) {
             TimeSignatureSelectorHorizontal(modifier, viewModel)
-            TimeSelectorHorizontal(modifier, viewModel)
+            Row{
+                TimeSelectorHorizontal(modifier, viewModel)
+                NumBarSelectorHorizontal(modifier, viewModel)
+            }
         }
         Spacer(modifier = Modifier.weight(1.0f))
         Text(

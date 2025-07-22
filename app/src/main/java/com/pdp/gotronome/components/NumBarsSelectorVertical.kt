@@ -1,13 +1,7 @@
 package com.pdp.gotronome.components
 
-import android.util.Log
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.pdp.gotronome.MetronomeViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -20,23 +14,27 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.pdp.gotronome.MockMetronomeViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pdp.gotronome.MetronomeViewModel
+import com.pdp.gotronome.MockMetronomeViewModel
 import kotlinx.coroutines.delay
 import kotlin.math.max
 import kotlin.math.min
 
 @Composable
 fun NumBarSelectorVertical(
-    modifier: Modifier = Modifier,
     viewModel: MetronomeViewModel
 ) {
     val showBars by viewModel.showBars.collectAsStateWithLifecycle()
@@ -99,7 +97,7 @@ fun NumBarSelectorVertical(
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ){
             Text(
-                text = "Show Bars",
+                text = "Bars",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(all = 16.dp)
@@ -120,11 +118,11 @@ fun NumBarSelectorVertical(
                     interactionSource = leftInteractionSource,
                     onClick = {
                         if (!leftLongPressed) { // Only trigger single click if not a long press
-                            val value = max(4, numBars - 1)
+                            val value = max(2, numBars - 1)
                             viewModel.setNumBars(value)
                         }
                     },
-                    enabled = numBars > 4,
+                    enabled = numBars > 2,
                 ) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown, // More distinct icon

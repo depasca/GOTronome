@@ -1,15 +1,14 @@
 package com.pdp.gotronome.components
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,44 +33,40 @@ import kotlinx.coroutines.delay
 import kotlin.math.max
 import kotlin.math.min
 
-private const val TAG = "GOT-Settings"
-
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TimeSelectorVertical(
+fun NumBarSelectorHorizontal(
     modifier: Modifier = Modifier,
-    viewModel: MetronomeViewModel,
+    viewModel: MetronomeViewModel
 ) {
-    val beatsPeerMinute by viewModel.beatsPerMinute.collectAsStateWithLifecycle()
+    val showBars by viewModel.showBars.collectAsStateWithLifecycle()
+    val numBars by viewModel.numBars.collectAsStateWithLifecycle()
     val leftInteractionSource = remember { MutableInteractionSource() }
     val rightInteractionSource = remember { MutableInteractionSource() }
     val leftPressed by leftInteractionSource.collectIsPressedAsState()
     val rightPressed by rightInteractionSource.collectIsPressedAsState()
     val viewConfiguration = LocalViewConfiguration.current
-
-    // State to track if a long press has started to avoid single click trigger on release
     var leftLongPressed by remember { mutableStateOf(false) }
     var rightLongPressed by remember { mutableStateOf(false) }
-    var bpmChanged by remember { mutableStateOf(false) }
+    var numBarsChanged by remember { mutableStateOf(false) }
 
     // Left Button Long Press Logic
     LaunchedEffect(leftPressed) {
         if (leftPressed) {
-            bpmChanged = true
+            numBarsChanged = true
             leftLongPressed = false // Reset long press state on new press
             delay(viewConfiguration.longPressTimeoutMillis) // Initial delay
             leftLongPressed = true // Mark as long press after initial delay
             while (leftPressed) {
                 // Continuous update while pressed
-                val value = max(40, beatsPeerMinute - 4) // Decrease by 4
-                viewModel.setBeatsPerMinute(value)
+                val value = max(4, numBars - 4) // Decrease by 4
+                viewModel.setNumBars(value)
                 delay(50) // Adjust this delay to control update speed (e.g., 50ms)
             }
         } else {
             leftLongPressed = false // Reset when released
-            if (bpmChanged) {
-                viewModel.storeBeatsPerMinute()
-                bpmChanged = false
+            if (numBarsChanged) {
+                viewModel.storeNumBars()
+                numBarsChanged = false
             }
         }
     }
@@ -79,76 +74,89 @@ fun TimeSelectorVertical(
     // Right Button Long Press Logic
     LaunchedEffect(rightPressed) {
         if (rightPressed) {
-            bpmChanged = true
+            numBarsChanged = true
             rightLongPressed = false // Reset long press state on new press
             delay(viewConfiguration.longPressTimeoutMillis) // Initial delay
             rightLongPressed = true // Mark as long press after initial delay
             while (rightPressed) {
                 // Continuous update while pressed
-                val value = min(240, beatsPeerMinute + 4) // Increase by 4
-                viewModel.setBeatsPerMinute(value)
+                val value = min(32, numBars + 4) // Increase by 4
+                viewModel.setNumBars(value)
                 delay(50) // Adjust this delay to control update speed (e.g., 50ms)
             }
         } else {
             rightLongPressed = false // Reset when released
-            if (bpmChanged) {
-                viewModel.storeBeatsPerMinute()
-                bpmChanged = false
+            if (numBarsChanged) {
+                viewModel.storeNumBars()
+                numBarsChanged = false
             }
         }
     }
 
-    Column {
-        Text(
-            text = "BPM",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(all = 16.dp)
-        )
+    Row {
         Row(
             modifier = modifier,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                interactionSource = leftInteractionSource,
-                onClick = {
-                    if (!leftLongPressed) { // Only trigger single click if not a long press
-                        val value = max(0, beatsPeerMinute - 1)
-                        viewModel.setBeatsPerMinute(value)
-                    }
-                },
-                enabled = beatsPeerMinute > 0,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowDown, // More distinct icon
-                    tint = MaterialTheme.colorScheme.secondary,
-                    contentDescription = "Decrease BPM"
-                )
-            }
             Text(
-                text = beatsPeerMinute.toString(),
-                style = MaterialTheme.typography.bodyLarge, // Larger, more prominent
+                text = "Bars",
+                style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .widthIn(min = 16.dp), // Ensure minimum width for text
-                textAlign = TextAlign.Center
+                modifier = Modifier.padding(all = 16.dp)
             )
-            IconButton(
-                interactionSource = rightInteractionSource,
-                onClick = {
-                    if (!rightLongPressed) { // Only trigger single click if not a long press
-                        val value = min(240, beatsPeerMinute + 1)
-                        viewModel.setBeatsPerMinute(value)
+            Checkbox(
+                checked = showBars,
+                onCheckedChange = {
+                    viewModel.setShowBars(it)
+                }
+            )
+
+            if (showBars) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        interactionSource = leftInteractionSource,
+                        onClick = {
+                            if (!leftLongPressed) { // Only trigger single click if not a long press
+                                val value = max(4, numBars - 1)
+                                viewModel.setNumBars(value)
+                            }
+                        },
+                        enabled = numBars > 4,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowDown, // More distinct icon
+                            tint = MaterialTheme.colorScheme.secondary,
+                            contentDescription = "Decrease Num Bars"
+                        )
                     }
-                },
-                enabled = beatsPeerMinute <= 240,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowUp, // More distinct icon
-                    tint = MaterialTheme.colorScheme.secondary,
-                    contentDescription = "Increase BPM"
-                )
+                    Text(
+                        text = numBars.toString(),
+                        style = MaterialTheme.typography.bodyLarge, // Larger, more prominent
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .widthIn(min = 16.dp), // Ensure minimum width for text
+                        textAlign = TextAlign.Center
+                    )
+                    IconButton(
+                        interactionSource = rightInteractionSource,
+                        onClick = {
+                            if (!rightLongPressed) { // Only trigger single click if not a long press
+                                val value = min(32, numBars + 1)
+                                viewModel.setNumBars(value)
+                            }
+                        },
+                        enabled = numBars <= 32,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowUp, // More distinct icon
+                            tint = MaterialTheme.colorScheme.secondary,
+                            contentDescription = "Increase Num Bars"
+                        )
+                    }
+                }
             }
         }
     }
@@ -156,8 +164,8 @@ fun TimeSelectorVertical(
 
 @Preview
 @Composable
-fun TimeSelectorVerticalPreview() {
-    TimeSelectorVertical(
+fun NumBarSelectorHorizontalPreview() {
+    NumBarSelectorHorizontal(
         viewModel = viewModel<MockMetronomeViewModel>()
     )
 }

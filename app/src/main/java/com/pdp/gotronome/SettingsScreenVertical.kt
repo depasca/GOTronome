@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,10 +23,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.components.AppMenu
+import com.pdp.gotronome.components.NumBarSelectorVertical
 import com.pdp.gotronome.components.TimeSelectorVertical
 import com.pdp.gotronome.components.TimeSignatureSelectorVertical
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
-import com.pdp.gotronome.components.NumBarSelectorVertical
 
 private const val TAG = "GOT-SettingsScreenVertical"
 
@@ -47,7 +48,7 @@ fun SettingsScreenVertical(
             contentAlignment = Alignment.Center
 
         ) {
-            AppMenu({viewModel.setPage("info")})
+            AppMenu({ viewModel.setPage("info") })
             Image(
                 imageVector = ImageVector.vectorResource(R.drawable.gotronome_banner),
                 contentDescription = "GOTronome banner"
@@ -56,9 +57,10 @@ fun SettingsScreenVertical(
         Spacer(modifier = Modifier.weight(0.5f))
         TimeSignatureSelectorVertical(modifier, viewModel)
         Spacer(modifier = Modifier.weight(0.5f))
-        TimeSelectorVertical(modifier, viewModel)
-        Spacer(modifier = Modifier.weight(1.0f))
-        NumBarSelectorVertical(modifier, viewModel)
+        Row {
+            TimeSelectorVertical(modifier, viewModel)
+            NumBarSelectorVertical(modifier, viewModel)
+        }
         Spacer(modifier = Modifier.weight(1.0f))
         Text(
             modifier = Modifier.fillMaxWidth(),

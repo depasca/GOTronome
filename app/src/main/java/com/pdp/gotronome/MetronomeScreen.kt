@@ -4,15 +4,20 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -39,24 +45,7 @@ import androidx.window.layout.WindowMetricsCalculator
 import com.google.android.play.core.review.ReviewException
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.android.play.core.review.model.ReviewErrorCode
-import com.google.android.play.core.appupdate.AppUpdateManagerFactory
-import com.google.android.play.core.appupdate.AppUpdateOptions
-import com.google.android.play.core.install.model.UpdateAvailability
-import com.google.android.play.core.install.model.AppUpdateType
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.registerForActivityResult
-import android.app.Activity.RESULT_OK
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import com.google.android.play.core.appupdate.AppUpdateInfo
-import com.google.android.play.core.appupdate.AppUpdateManager
-import androidx.compose.material3.Text
 
 private const val TAG = "GOT-Settings"
 
@@ -162,13 +151,59 @@ fun MetronomeScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         if (isPlaying) {
-                            for (i in 1..beatsPerMeasure) {
-                                BeatView(
-                                    number = i,
-                                    beatNumber = currentBeat,
-                                    beatsPerMeasure = beatsPerMeasure,
-                                    modifier = Modifier.weight(1f)
-                                )
+                            Column (
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .padding(4.dp),
+                                verticalArrangement = Arrangement.SpaceBetween,
+                                horizontalAlignment = CenterHorizontally
+                            ){
+                                Row (
+                                    modifier = Modifier.weight(4f),
+                                    ) {
+                                    for (i in 1..beatsPerMeasure) {
+                                        BeatView(
+                                            number = i,
+                                            beatNumber = currentBeat,
+                                            beatsPerMeasure = beatsPerMeasure,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                }
+                                if (showBars) {
+                                    Row(
+                                        modifier = Modifier.weight(1f).fillMaxWidth().padding(4.dp)
+                                    ) {
+                                        for (i in 1..numBars) {
+                                            var bgColor = MaterialTheme.colorScheme.surface
+                                            var textColor = MaterialTheme.colorScheme.primary
+                                            if (i == currentBar) {
+                                                bgColor = MaterialTheme.colorScheme.primary
+                                                textColor = MaterialTheme.colorScheme.secondary
+                                            }
+                                            Box(
+                                                modifier = Modifier.padding(2.dp)
+                                                    .weight(1f)
+                                                    .fillMaxHeight()
+                                                    .border(
+                                                        width = 2.dp,
+                                                        color = bgColor,
+                                                        shape = RoundedCornerShape(8.dp)
+                                                    )
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(bgColor),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Text(
+                                                    text = i.toString(),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = textColor,
+                                                )
+
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         } else {
                             when (page) {

@@ -12,8 +12,8 @@ android {
         applicationId = "com.pdp.gotronome"
         minSdk = 25
         targetSdk = 36
-        versionCode = 10
-        versionName = "1.8.1"
+        versionCode = 11
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
