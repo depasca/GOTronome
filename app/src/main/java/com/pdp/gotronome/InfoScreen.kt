@@ -71,11 +71,20 @@ fun InfoScreen(
                         contentDescription = "GOTronome banner",
                         modifier = Modifier.size(40.dp)
                     )
-                    Text(
-                        text = "GOTronome",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Column (
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "GOTronome",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Version 2.0.0",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
                     IconButton(
                         onClick = { handleClick() },
                     ) {
