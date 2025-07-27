@@ -23,7 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.components.AppMenu
-import com.pdp.gotronome.components.vertical.NumBarSelectorVertical
+import com.pdp.gotronome.components.vertical.NumSelector
 import com.pdp.gotronome.components.vertical.TimeSelectorVertical
 import com.pdp.gotronome.components.vertical.TimeSignatureSelectorVertical
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
@@ -59,7 +59,16 @@ fun SettingsScreenVertical(
         Spacer(modifier = Modifier.weight(0.5f))
         Row {
             TimeSelectorVertical(modifier, viewModel)
-            NumBarSelectorVertical(viewModel)
+            NumSelector(
+                true,
+                viewModel.showBars,
+                viewModel.numBars,
+                {viewModel.setShowBars(it)},
+                {viewModel.setNumBars(it)},
+                {viewModel.storeNumBars()},
+                2,
+                32
+            )
         }
         Spacer(modifier = Modifier.weight(1.0f))
         Text(

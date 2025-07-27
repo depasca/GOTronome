@@ -21,4 +21,5 @@ class MockMetronomeViewModel(
     override fun resetNumRuns() {}
     override fun setShowBars(value: Boolean) {}
     override fun setNumBars(value: Int) {}
+    override fun setNumSilentMeasures(value: Int) {}
 }
