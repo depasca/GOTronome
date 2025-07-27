@@ -37,6 +37,7 @@ import kotlin.math.min
 
 @Composable
 fun NumSelector(
+    label: String,
     withCheckbox: Boolean = false,
     checkboxProperty: StateFlow<Boolean>?,
     numPproperty: StateFlow<Int>,
@@ -106,10 +107,10 @@ fun NumSelector(
             verticalAlignment = Alignment.CenterVertically
         ){
             Text(
-                text = "Bars",
+                text = label,
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(all = 16.dp)
+                modifier = Modifier.padding(8.dp)
             )
             if(withCheckbox) {
                 Checkbox(
@@ -176,6 +177,7 @@ fun NumSelector(
 fun NumSelectorPreview() {
     val viewModel = viewModel<MockMetronomeViewModel>()
     NumSelector(
+        "Bars",
         true,
         viewModel.showBars,
         viewModel.numBars,

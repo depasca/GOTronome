@@ -54,12 +54,37 @@ fun SettingsScreenVertical(
                 contentDescription = "GOTronome banner"
             )
         }
+
         Spacer(modifier = Modifier.weight(0.5f))
-        TimeSignatureSelectorVertical(modifier, viewModel)
+        TimeSignatureSelectorVertical(modifier, viewModel)// BPM
+        NumSelector(
+            "BPM",
+            false,
+            null,
+            viewModel.beatsPerMinute,
+            { },
+            {viewModel.setBeatsPerMinute(it)},
+            {viewModel.storeBeatsPerMinute()},
+            20,
+            240
+        )
         Spacer(modifier = Modifier.weight(0.5f))
         Row {
-            TimeSelectorVertical(modifier, viewModel)
+            // Silent Bars
             NumSelector(
+                "Silent Bars",
+                false,
+                null,
+                viewModel.numSilentMeasures,
+                {},
+                {viewModel.setNumSilentMeasures(it)},
+                {viewModel.storeNumSilentMeasures()},
+                0,
+                7
+            )
+            // Bars
+             NumSelector(
+                 "Show Bars",
                 true,
                 viewModel.showBars,
                 viewModel.numBars,

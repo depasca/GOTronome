@@ -184,6 +184,11 @@ open class MetronomeViewModel(
             userPreferencesRepository.setNumBars(_numBars.value)
         }
     }
+    open fun storeNumSilentMeasures() {
+        viewModelScope.launch {
+            userPreferencesRepository.setNumSilentBars(_numSilentMeasures.value)
+        }
+    }
 
     open fun incrementNumRuns() {
         viewModelScope.launch {

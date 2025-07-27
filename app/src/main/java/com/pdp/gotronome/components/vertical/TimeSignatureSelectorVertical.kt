@@ -39,7 +39,7 @@ fun TimeSignatureSelectorVertical(
             text = "TS",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(all = 16.dp)
+            modifier = Modifier.padding(all = 8.dp)
         )
         FlowRow (modifier.selectableGroup()) {
             radioOptions.forEach { text ->
@@ -51,7 +51,7 @@ fun TimeSignatureSelectorVertical(
                             onClick = { viewModel.setTimeSignature(text) },
                             role = Role.RadioButton
                         )
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
@@ -62,7 +62,7 @@ fun TimeSignatureSelectorVertical(
                         text = text,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.padding(start = 16.dp)
+                        modifier = Modifier.padding(start = 8.dp)
                     )
                 }
             }
