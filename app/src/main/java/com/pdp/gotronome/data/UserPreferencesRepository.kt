@@ -23,6 +23,7 @@ val BEATS_PER_MINUTE = intPreferencesKey("beats_per_minute")
 val TIME_SIGNATURE = stringPreferencesKey("time_signature")
 val SHOW_BARS = booleanPreferencesKey("show_bars")
 val NUM_BARS = intPreferencesKey("num_bars")
+val NUM_SILENT_MEASURES = intPreferencesKey("num_silent_measures")
 
 val counterSequence = sequenceOf(5, 8, 13, 21)
 val timeSignatures = listOf("4/4", "3/4", "2/4", "2/2", "6/8")
@@ -30,6 +31,10 @@ val timeSignatures = listOf("4/4", "3/4", "2/4", "2/2", "6/8")
 class UserPreferencesRepository (
     private val context: Context
 ) {
+    val numSilentMeasuresFlow: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[NUM_SILENT_MEASURES] ?: 0
+        }
     val reviewPromptCounterFlow: Flow<Int> = context.dataStore.data
         .map { preferences ->
             preferences[REVIEW_PROMPT_COUNTER] ?: counterSequence.first()
@@ -107,6 +112,12 @@ class UserPreferencesRepository (
     suspend fun setNumBars(numBars: Int) {
         context.dataStore.edit { preferences ->
             preferences[NUM_BARS] = numBars
+        }
+    }
+
+    suspend fun setNumSilentBars(value: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[NUM_SILENT_MEASURES] = value
         }
     }
 

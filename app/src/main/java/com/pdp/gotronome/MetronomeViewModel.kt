@@ -45,6 +45,9 @@ open class MetronomeViewModel(
     private val _numBars = MutableStateFlow<Int>(4)
     val numBars: StateFlow<Int> = _numBars
 
+    private val _numSilentMeasures = MutableStateFlow<Int>(0)
+    val numSilentMeasures: StateFlow<Int> = _numSilentMeasures
+
     init {
         Log.d(TAG, "MetronomeViewModel init")
         metronome.setCallback(this)
@@ -85,6 +88,12 @@ open class MetronomeViewModel(
             userPreferencesRepository.numBarsFlow.collect { value ->
                 Log.d(TAG, "Init -> Num bars: $value")
                 _numBars.value = value
+            }
+        }
+        viewModelScope.launch {
+            userPreferencesRepository.numSilentMeasuresFlow.collect { value ->
+                Log.d(TAG, "Init -> Num silent measures: $value")
+                _numSilentMeasures.value = value
             }
         }
         Log.d(TAG, "MetronomeViewModel init done")
@@ -198,6 +207,13 @@ open class MetronomeViewModel(
         }
         _numRuns.value = 0
     }
+
+    open fun setNumSilentMeasures(value: Int) {
+        _numSilentMeasures.value = value
+        viewModelScope.launch {
+            userPreferencesRepository.setNumSilentBars(_numSilentMeasures.value)
+            }
+        }
 }
 
 class MetronomeViewModelFactory(
