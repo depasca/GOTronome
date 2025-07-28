@@ -1,6 +1,5 @@
 package com.pdp.gotronome.components.vertical
 
-import android.util.Property
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column

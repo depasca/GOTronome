@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.components.AppMenu
 import com.pdp.gotronome.components.vertical.NumSelector
-import com.pdp.gotronome.components.vertical.TimeSelectorVertical
 import com.pdp.gotronome.components.vertical.TimeSignatureSelectorVertical
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
@@ -38,7 +37,7 @@ fun SettingsScreenVertical(
     Column(
         modifier = modifier.fillMaxSize()
             .padding(top = 30.dp, bottom = 30.dp, start = 8.dp, end = 8.dp),
-        verticalArrangement = Arrangement.SpaceEvenly,
+        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.Start,
     ) {
         Box(
@@ -57,6 +56,7 @@ fun SettingsScreenVertical(
 
         Spacer(modifier = Modifier.weight(0.5f))
         TimeSignatureSelectorVertical(modifier, viewModel)// BPM
+        // BMP
         NumSelector(
             "BPM",
             false,

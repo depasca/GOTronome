@@ -1,5 +1,6 @@
 package com.pdp.gotronome.components.horizontal
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -33,13 +34,14 @@ fun TimeSignatureSelectorHorizontal(
     val selectedOption by viewModel.selectedTimeSignature.collectAsStateWithLifecycle()
     Row (
         modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ){
         Text(
             text = "TS",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(all = 16.dp)
+            modifier = Modifier.padding(all = 8.dp, end = 16.dp)
         )
         FlowRow (modifier.selectableGroup()) {
             radioOptions.forEach { text ->
@@ -51,7 +53,7 @@ fun TimeSignatureSelectorHorizontal(
                             onClick = { viewModel.setTimeSignature(text) },
                             role = Role.RadioButton
                         )
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
@@ -62,7 +64,7 @@ fun TimeSignatureSelectorHorizontal(
                         text = text,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.padding(start = 16.dp)
+                        modifier = Modifier.padding(start = 8.dp)
                     )
                 }
             }

@@ -23,9 +23,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.components.AppMenu
-import com.pdp.gotronome.components.horizontal.NumBarSelectorHorizontal
-import com.pdp.gotronome.components.horizontal.TimeSelectorHorizontal
 import com.pdp.gotronome.components.horizontal.TimeSignatureSelectorHorizontal
+import com.pdp.gotronome.components.vertical.NumSelector
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-SettingsScreenHorizontal"
@@ -37,7 +36,7 @@ fun SettingsScreenHorizontal(
 ) {
     Column(
         modifier = modifier.fillMaxSize()
-            .padding(top = 30.dp, bottom = 30.dp, start = 8.dp, end = 8.dp),
+            .padding(top = 8.dp, bottom = 8.dp, start = 8.dp, end = 8.dp),
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.Start,
     ) {
@@ -57,13 +56,51 @@ fun SettingsScreenHorizontal(
         Spacer(modifier = Modifier.weight(1.0f))
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.SpaceEvenly,
+            verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.Start,
         ) {
             TimeSignatureSelectorHorizontal(modifier, viewModel)
-            Row{
-                TimeSelectorHorizontal(modifier, viewModel)
-                NumBarSelectorHorizontal(modifier, viewModel)
+            Row (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                // BPM
+                NumSelector(
+                    "BPM",
+                    false,
+                    null,
+                    viewModel.beatsPerMinute,
+                    { },
+                    {viewModel.setBeatsPerMinute(it)},
+                    {viewModel.storeBeatsPerMinute()},
+                    20,
+                    240
+                )
+                // Silent Bars
+                NumSelector(
+                    "Silent Bars",
+                    false,
+                    null,
+                    viewModel.numSilentMeasures,
+                    {},
+                    {viewModel.setNumSilentMeasures(it)},
+                    {viewModel.storeNumSilentMeasures()},
+                    0,
+                    7
+                )
+                // Bars
+                NumSelector(
+                    "Show Bars",
+                    true,
+                    viewModel.showBars,
+                    viewModel.numBars,
+                    {viewModel.setShowBars(it)},
+                    {viewModel.setNumBars(it)},
+                    {viewModel.storeNumBars()},
+                    2,
+                    32
+                )
             }
         }
         Spacer(modifier = Modifier.weight(1.0f))
