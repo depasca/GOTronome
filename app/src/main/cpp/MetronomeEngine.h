@@ -30,7 +30,7 @@ public:
                                           void *audioData,
                                           int32_t numFrames) override;
 
-    jboolean getIisPlaying();
+    int getPlayingState();
 
 private:
     std::shared_ptr<oboe::AudioStream> stream;

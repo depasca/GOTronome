@@ -3,6 +3,10 @@
 #include <chrono>
 #include <android/log.h>
 
+const int PLAYING_STATE_PLAYING = 1;
+const int PLAYING_STATE_STOPPED = 0;
+const int PLAYING_STATE_SILENT = 2;
+
 MetronomeEngine::MetronomeEngine() {
     isPlaying = false;
     currentBeat = 0;
@@ -75,7 +79,10 @@ oboe::Result  MetronomeEngine::stop() {
                 stream->close();
                 stream.reset();
                 isPlaying = false;
+                isSilent = false;
                 currentBeat = 0;
+                currentMeasure = 0;
+                silentMeasureCounter = 0;
             }
         }
     } while (result != oboe::Result::OK && tryCount++ < 3);
@@ -127,7 +134,7 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
                 currentMeasure++;
                 if(isSilent){
                     silentMeasureCounter++;
-                    if(silentMeasureCounter >= silentMeasures){
+                    if(silentMeasureCounter > silentMeasures){
                         isSilent = false;
                         silentMeasureCounter = 0;
                     }
@@ -166,8 +173,11 @@ int MetronomeEngine::getCurrentBeat() const {
     return currentBeat;
 }
 
-jboolean MetronomeEngine::getIisPlaying() {
-    return isPlaying;
+int MetronomeEngine::getPlayingState() {
+    if(isPlaying){
+        return isSilent ? PLAYING_STATE_SILENT : PLAYING_STATE_PLAYING;
+    }
+    return PLAYING_STATE_STOPPED;
 }
 
 oboe::DataCallbackResult MetronomeEngine::onAudioReady(oboe::AudioStream *_stream,

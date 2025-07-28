@@ -27,5 +27,5 @@ open class Metronome {
     open external fun stopMetronome()
     open external fun getCurrentTimeSeconds(): Double
     open external fun getCurrentBeat(): Int
-    open external fun getIsPLaying(): Boolean
+    open external fun getPlayingState(): Int
 }

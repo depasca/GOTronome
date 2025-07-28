@@ -16,8 +16,8 @@ int getCurrentBeat(JNIEnv* env, jobject thiz) {
     return engine.getCurrentBeat();
 }
 
-jboolean getIsPLaying(JNIEnv* env, jobject thiz) {
-    return engine.getIisPlaying();
+int getPlayingState(JNIEnv* env, jobject thiz) {
+    return engine.getPlayingState();
 }
 
 extern "C" JNICALL
@@ -43,7 +43,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
             {"stopMetronome", "()V", reinterpret_cast<void*>(stopMetronome)},
             {"getCurrentTimeSeconds", "()D", reinterpret_cast<void*>(getCurrentTimeSeconds)},
             {"getCurrentBeat", "()I", reinterpret_cast<void*>(getCurrentBeat)},
-            {"getIsPLaying", "()Z", reinterpret_cast<void*>(getIsPLaying)},
+            {"getPlayingState", "()I", reinterpret_cast<void*>(getPlayingState)},
     };
     int rc = env->RegisterNatives(c, methods, sizeof(methods)/sizeof(JNINativeMethod));
     if (rc != JNI_OK) return rc;

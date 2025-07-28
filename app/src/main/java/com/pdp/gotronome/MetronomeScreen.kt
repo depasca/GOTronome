@@ -2,6 +2,7 @@ package com.pdp.gotronome
 
 import android.content.Context
 import android.util.Log
+import androidx.collection.emptyLongSet
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -65,16 +66,20 @@ fun MetronomeScreen(
     val showBars by viewModel.showBars.collectAsStateWithLifecycle()
     val numBars by viewModel.numBars.collectAsStateWithLifecycle()
 
-    var isPlaying by remember { mutableStateOf(false) }
+    var playingState by remember { mutableStateOf(0) }
     var currentBeat by remember { mutableIntStateOf(0) }
     var currentBar by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         while (true) {
             withFrameNanos {
-                isPlaying = viewModel.getIsPlaying()
                 currentBeat = viewModel.getCurrentBeat()
                 currentBar = viewModel.getCurrentBar()
+                playingState = viewModel.getIsPlaying()
+                if (playingState == 2) {
+                    currentBeat = 0
+                    currentBar = 0
+                }
             }
         }
     }
@@ -137,7 +142,7 @@ fun MetronomeScreen(
                             .padding(30.dp)
                             .clickable(
                                 onClick = {
-                                    if (isPlaying) {
+                                    if (playingState != 0) {
                                         viewModel.stop(); Log.d(TAG, "Metronome stopped")
                                         viewModel.incrementNumRuns()
                                     } else {
@@ -150,7 +155,7 @@ fun MetronomeScreen(
                         verticalAlignment = CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        if (isPlaying) {
+                        if (playingState != 0) {
                             Column (
                                 modifier = Modifier
                                     .fillMaxHeight()
@@ -223,7 +228,7 @@ fun MetronomeScreen(
                             .padding(30.dp)
                             .clickable(
                                 onClick = {
-                                    if (isPlaying) {
+                                    if (playingState != 0) {
                                         viewModel.stop(); Log.d(TAG, "Metronome stopped")
                                         viewModel.incrementNumRuns()
                                     } else {
@@ -236,7 +241,7 @@ fun MetronomeScreen(
                         horizontalAlignment = CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        if (isPlaying) {
+                        if (playingState != 0) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()

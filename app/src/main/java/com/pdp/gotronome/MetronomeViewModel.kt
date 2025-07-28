@@ -113,8 +113,8 @@ open class MetronomeViewModel(
         _currentBar.value = 0
     }
 
-    open fun getIsPlaying(): Boolean {
-        return metronome.getIsPLaying()
+    open fun getIsPlaying(): Int {
+        return metronome.getPlayingState()
     }
 
     override fun onBeat(beatIndex: Int) {
