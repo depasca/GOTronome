@@ -76,7 +76,7 @@ fun MetronomeScreen(
                 currentBeat = viewModel.getCurrentBeat()
                 currentBar = viewModel.getCurrentBar()
                 playingState = viewModel.getIsPlaying()
-                if (playingState == 2) {
+                if (playingState == PLAYING_STATE_SILENT) {
                     currentBeat = 0
                     currentBar = 0
                 }
@@ -142,7 +142,7 @@ fun MetronomeScreen(
                             .padding(30.dp)
                             .clickable(
                                 onClick = {
-                                    if (playingState != 0) {
+                                    if (playingState != PLAYING_STATE_STOPPED) {
                                         viewModel.stop(); Log.d(TAG, "Metronome stopped")
                                         viewModel.incrementNumRuns()
                                     } else {
@@ -155,7 +155,7 @@ fun MetronomeScreen(
                         verticalAlignment = CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        if (playingState != 0) {
+                        if (playingState != PLAYING_STATE_STOPPED) {
                             Column (
                                 modifier = Modifier
                                     .fillMaxHeight()
@@ -228,7 +228,7 @@ fun MetronomeScreen(
                             .padding(30.dp)
                             .clickable(
                                 onClick = {
-                                    if (playingState != 0) {
+                                    if (playingState != PLAYING_STATE_STOPPED) {
                                         viewModel.stop(); Log.d(TAG, "Metronome stopped")
                                         viewModel.incrementNumRuns()
                                     } else {
@@ -241,7 +241,7 @@ fun MetronomeScreen(
                         horizontalAlignment = CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        if (playingState != 0) {
+                        if (playingState != PLAYING_STATE_STOPPED) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()

@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 private const val TAG = "GOT-Settings"
+const val PLAYING_STATE_PLAYING = 1
+const val PLAYING_STATE_STOPPED = 0
+const val PLAYING_STATE_SILENT = 2
 
 open class MetronomeViewModel(
     private val userPreferencesRepository: UserPreferencesRepository,
