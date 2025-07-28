@@ -39,8 +39,11 @@ private:
     double sampleRate = 48000.0;
     double samplesPerBeat = 0.0;
     int currentBeat = 0;
-//    int frameCounter = 0;
+    int currentMeasure = 0;
     int beatsPerMeasure = 4;
+    int silentMeasures = 2;
+    int silentMeasureCounter = 0;
+    bool isSilent = false;
     std::mutex mLock;
 
     JavaVM *javaVm = nullptr;

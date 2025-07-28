@@ -122,7 +122,20 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
         if ((frameCounter % static_cast<int>(samplesPerBeat)) == 0) {
 //            sendBeatToJava(currentBeat);
             currentBeat += 1;
-            if (currentBeat > beatsPerMeasure) currentBeat = 1;
+            if (currentBeat > beatsPerMeasure){
+                currentBeat = 1;
+                currentMeasure++;
+                if(isSilent){
+                    silentMeasureCounter++;
+                    if(silentMeasureCounter >= silentMeasures){
+                        isSilent = false;
+                        silentMeasureCounter = 0;
+                    }
+                }
+                else{
+                    isSilent = true;
+                }
+            }
         }
 
         int beatOffset = frameCounter % static_cast<int>(samplesPerBeat);
@@ -130,7 +143,9 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
 
         float freq = (currentBeat == 1) ? 1760.0f : 880.0f;
         float volume = (currentBeat == 1) ? accentVolume : tickVolume;
-
+        if(isSilent){
+            volume = 0.0f;
+        }
         if (isTick) {
             float t = static_cast<float>(beatOffset) / sampleRate;
             float env = envelope(t, tickLength / sampleRate);
@@ -174,6 +189,7 @@ void MetronomeEngine::setJavaVM(JavaVM *vm, jobject callbackObject) {
     onBeatMethod = env->GetStaticMethodID(cls, "onNativeBeat", "(I)V");
 }
 
+// not using this for now, because kotlin pulls the info at every frame
 void MetronomeEngine::sendBeatToJava(int beat) {
     if (javaVm && onBeatMethod) {
         JNIEnv *env;
