@@ -1,4 +1,4 @@
-package com.pdp.gotronome.components
+package com.pdp.gotronome.components.unused
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures

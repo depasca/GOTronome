@@ -41,7 +41,7 @@ fun TimeSignatureSelectorHorizontal(
             text = "TS",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(all = 8.dp, end = 16.dp)
+            modifier = Modifier.padding(start = 8.dp, top = 8.dp,  bottom = 8.dp, end = 16.dp)
         )
         FlowRow (modifier.selectableGroup()) {
             radioOptions.forEach { text ->

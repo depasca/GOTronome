@@ -1,4 +1,4 @@
-package com.pdp.gotronome.components.vertical
+package com.pdp.gotronome.components
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -28,18 +28,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.max
 import kotlin.math.min
 
 @Composable
-fun NumBarSelectorVertical(
-    viewModel: MetronomeViewModel
+fun NumSelector(
+    label: String,
+    withCheckbox: Boolean = false,
+    checkboxProperty: StateFlow<Boolean>?,
+    numPproperty: StateFlow<Int>,
+    checkboxSetter: (Boolean) -> Unit,
+    propertySetter: (Int) -> Unit,
+    propertyStorer: () -> Unit,
+    minVal: Int,
+    maxVal: Int
 ) {
-    val showBars by viewModel.showBars.collectAsStateWithLifecycle()
-    val numBars by viewModel.numBars.collectAsStateWithLifecycle()
+    val _boolProperty = checkboxProperty?.collectAsStateWithLifecycle()
+    val _numProperty by numPproperty.collectAsStateWithLifecycle()
     val leftInteractionSource = remember { MutableInteractionSource() }
     val rightInteractionSource = remember { MutableInteractionSource() }
     val leftPressed by leftInteractionSource.collectIsPressedAsState()
@@ -47,26 +55,26 @@ fun NumBarSelectorVertical(
     val viewConfiguration = LocalViewConfiguration.current
     var leftLongPressed by remember { mutableStateOf(false) }
     var rightLongPressed by remember { mutableStateOf(false) }
-    var numBarsChanged by remember { mutableStateOf(false) }
+    var numPropertyChanged by remember { mutableStateOf(false) }
 
     // Left Button Long Press Logic
     LaunchedEffect(leftPressed) {
         if (leftPressed) {
-            numBarsChanged = true
+            numPropertyChanged = true
             leftLongPressed = false // Reset long press state on new press
             delay(viewConfiguration.longPressTimeoutMillis) // Initial delay
             leftLongPressed = true // Mark as long press after initial delay
             while (leftPressed) {
                 // Continuous update while pressed
-                val value = max(4, numBars - 4) // Decrease by 4
-                viewModel.setNumBars(value)
+                val value = max(minVal, _numProperty - 4) // Decrease by 4
+                propertySetter(value)
                 delay(50) // Adjust this delay to control update speed (e.g., 50ms)
             }
         } else {
             leftLongPressed = false // Reset when released
-            if (numBarsChanged) {
-                viewModel.storeNumBars()
-                numBarsChanged = false
+            if (numPropertyChanged) {
+                propertyStorer()
+                numPropertyChanged = false
             }
         }
     }
@@ -74,21 +82,21 @@ fun NumBarSelectorVertical(
     // Right Button Long Press Logic
     LaunchedEffect(rightPressed) {
         if (rightPressed) {
-            numBarsChanged = true
+            numPropertyChanged = true
             rightLongPressed = false // Reset long press state on new press
             delay(viewConfiguration.longPressTimeoutMillis) // Initial delay
             rightLongPressed = true // Mark as long press after initial delay
             while (rightPressed) {
                 // Continuous update while pressed
-                val value = min(32, numBars + 4) // Increase by 4
-                viewModel.setNumBars(value)
+                val value = min(maxVal, _numProperty + 4) // Increase by 4
+                propertySetter(value)
                 delay(50) // Adjust this delay to control update speed (e.g., 50ms)
             }
         } else {
             rightLongPressed = false // Reset when released
-            if (numBarsChanged) {
-                viewModel.storeNumBars()
-                numBarsChanged = false
+            if (numPropertyChanged) {
+                propertyStorer()
+                numPropertyChanged = false
             }
         }
     }
@@ -98,20 +106,22 @@ fun NumBarSelectorVertical(
             verticalAlignment = Alignment.CenterVertically
         ){
             Text(
-                text = "Bars",
+                text = label,
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(all = 16.dp)
+                modifier = Modifier.padding(8.dp)
             )
-            Checkbox(
-                checked = showBars,
-                onCheckedChange = {
-                    viewModel.setShowBars(it)
-                }
-            )
+            if(withCheckbox) {
+                Checkbox(
+                    checked = _boolProperty?.value ?: false,
+                    onCheckedChange = {
+                        checkboxSetter(it)
+                    }
+                )
+            }
 
         }
-        if(showBars){
+        if(!withCheckbox || _boolProperty!!.value){
             Row (
                 verticalAlignment = Alignment.CenterVertically
             ){
@@ -119,11 +129,11 @@ fun NumBarSelectorVertical(
                     interactionSource = leftInteractionSource,
                     onClick = {
                         if (!leftLongPressed) { // Only trigger single click if not a long press
-                            val value = max(2, numBars - 1)
-                            viewModel.setNumBars(value)
+                            val value = max(minVal, _numProperty - 1)
+                            propertySetter(value)
                         }
                     },
-                    enabled = numBars > 2,
+                    enabled = +_numProperty > minVal,
                 ) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown, // More distinct icon
@@ -132,7 +142,7 @@ fun NumBarSelectorVertical(
                     )
                 }
                 Text(
-                    text = numBars.toString(),
+                    text = _numProperty.toString(),
                     style = MaterialTheme.typography.bodyLarge, // Larger, more prominent
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier
@@ -144,11 +154,11 @@ fun NumBarSelectorVertical(
                     interactionSource = rightInteractionSource,
                     onClick = {
                         if (!rightLongPressed) { // Only trigger single click if not a long press
-                            val value = min(32, numBars + 1)
-                            viewModel.setNumBars(value)
+                            val value = min(maxVal, _numProperty + 1)
+                            propertySetter(value)
                         }
                     },
-                    enabled = numBars <= 32,
+                    enabled = _numProperty <= maxVal,
                 ) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowUp, // More distinct icon
@@ -163,8 +173,17 @@ fun NumBarSelectorVertical(
 
 @Preview
 @Composable
-fun NumBarSelectorVerticalPreview() {
-    NumBarSelectorVertical(
-        viewModel = viewModel<MockMetronomeViewModel>()
+fun NumSelectorPreview() {
+    val viewModel = viewModel<MockMetronomeViewModel>()
+    NumSelector(
+        "Bars",
+        true,
+        viewModel.showBars,
+        viewModel.numBars,
+        {viewModel.setShowBars(it)},
+        {viewModel.setNumBars(it)},
+        {viewModel.storeNumBars()},
+        2,
+        32
     )
 }

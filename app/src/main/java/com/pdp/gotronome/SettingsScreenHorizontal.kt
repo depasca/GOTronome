@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.components.AppMenu
 import com.pdp.gotronome.components.horizontal.TimeSignatureSelectorHorizontal
-import com.pdp.gotronome.components.vertical.NumSelector
+import com.pdp.gotronome.components.NumSelector
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-SettingsScreenHorizontal"
