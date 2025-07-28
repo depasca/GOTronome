@@ -31,6 +31,7 @@ public:
                                           int32_t numFrames) override;
 
     int getPlayingState();
+    void setNumSilentMeasures(int numSilentMeasures);
 
 private:
     std::shared_ptr<oboe::AudioStream> stream;
@@ -41,7 +42,7 @@ private:
     int currentBeat = 0;
     int currentMeasure = 0;
     int beatsPerMeasure = 4;
-    int silentMeasures = 2;
+    int silentMeasures = 0;
     int silentMeasureCounter = 0;
     bool isSilent = false;
     std::mutex mLock;

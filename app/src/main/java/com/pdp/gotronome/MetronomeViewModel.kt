@@ -97,6 +97,7 @@ open class MetronomeViewModel(
             userPreferencesRepository.numSilentMeasuresFlow.collect { value ->
                 Log.d(TAG, "Init -> Num silent measures: $value")
                 _numSilentMeasures.value = value
+                metronome.setNumSilentMeasures(_numSilentMeasures.value)
             }
         }
         Log.d(TAG, "MetronomeViewModel init done")
@@ -218,6 +219,7 @@ open class MetronomeViewModel(
 
     open fun setNumSilentMeasures(value: Int) {
         _numSilentMeasures.value = value
+        metronome.setNumSilentMeasures(_numSilentMeasures.value)
         viewModelScope.launch {
             userPreferencesRepository.setNumSilentBars(_numSilentMeasures.value)
             }

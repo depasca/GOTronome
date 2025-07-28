@@ -28,4 +28,5 @@ open class Metronome {
     open external fun getCurrentTimeSeconds(): Double
     open external fun getCurrentBeat(): Int
     open external fun getPlayingState(): Int
+    open external fun setNumSilentMeasures(numSilentMeasures: Int)
 }

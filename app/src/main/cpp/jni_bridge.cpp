@@ -20,6 +20,10 @@ int getPlayingState(JNIEnv* env, jobject thiz) {
     return engine.getPlayingState();
 }
 
+void setNumSilentMeasures(JNIEnv* env, jobject thiz, int numSilentMeasures) {
+    engine.setNumSilentMeasures(numSilentMeasures);
+}
+
 extern "C" JNICALL
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
     JNIEnv* env;
@@ -44,6 +48,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
             {"getCurrentTimeSeconds", "()D", reinterpret_cast<void*>(getCurrentTimeSeconds)},
             {"getCurrentBeat", "()I", reinterpret_cast<void*>(getCurrentBeat)},
             {"getPlayingState", "()I", reinterpret_cast<void*>(getPlayingState)},
+            {"setNumSilentMeasures", "(I)V", reinterpret_cast<void*>(setNumSilentMeasures)},
     };
     int rc = env->RegisterNatives(c, methods, sizeof(methods)/sizeof(JNINativeMethod));
     if (rc != JNI_OK) return rc;
