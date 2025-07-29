@@ -197,7 +197,12 @@ fun InfoSectionCard(
     }
 }
 
-@Preview(showBackground = true, name = "Info Screen Light")
+@Preview(
+    showBackground = true,
+    name = "Info Screen Portrait",
+    widthDp = 360,
+    heightDp = 720
+)
 @Composable
 fun InfoScreenPreviewLight() {
     GOTronomeTheme(darkTheme = false) {
@@ -205,7 +210,12 @@ fun InfoScreenPreviewLight() {
     }
 }
 
-@Preview(showBackground = true, name = "Info Screen Dark")
+@Preview(
+    showBackground = true,
+    name = "Info Screen Landscape",
+    widthDp = 720,
+    heightDp = 360
+)
 @Composable
 fun InfoScreenPreviewDark() {
     GOTronomeTheme(darkTheme = true) {

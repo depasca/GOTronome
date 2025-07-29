@@ -1,9 +1,12 @@
-package com.pdp.gotronome.components.horizontal
+package com.pdp.gotronome.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
@@ -23,40 +26,44 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
 import com.pdp.gotronome.data.timeSignatures
+import androidx.compose.ui.text.style.TextAlign
+
+private const val TAG = "GOT-TimeSignatureSelectorVertical"
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TimeSignatureSelectorHorizontal(
-    modifier: Modifier = Modifier,
+fun TimeSignatureSelector(
     viewModel: MetronomeViewModel,
 ) {
     val radioOptions = timeSignatures
     val selectedOption by viewModel.selectedTimeSignature.collectAsStateWithLifecycle()
-    Row (
-        modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
+    Row(
+        horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         Text(
             text = "TS",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(start = 8.dp, top = 8.dp,  bottom = 8.dp, end = 16.dp)
+            textAlign = TextAlign.Center,
         )
-        FlowRow (modifier.selectableGroup()) {
+        FlowRow (
+            modifier = Modifier.selectableGroup(),
+            verticalArrangement = Arrangement.Center,
+            maxItemsInEachRow = 3,
+        ) {
             radioOptions.forEach { text ->
                 Row(
                     Modifier
-                        .height(56.dp)
                         .selectable(
                             selected = (text == selectedOption),
                             onClick = { viewModel.setTimeSignature(text) },
                             role = Role.RadioButton
-                        )
-                        .padding(horizontal = 8.dp),
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
+                        modifier = Modifier.padding(horizontal = 8.dp),
                         selected = (text == selectedOption),
                         onClick = null // null recommended for accessibility with screen readers
                     )
@@ -64,7 +71,7 @@ fun TimeSignatureSelectorHorizontal(
                         text = text,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.padding(start = 8.dp)
+//                        modifier = Modifier.padding(start = 8.dp)
                     )
                 }
             }
@@ -77,8 +84,8 @@ fun TimeSignatureSelectorHorizontal(
     backgroundColor = 0xFFF0EAE2
 )
 @Composable
-fun TimeSignatureSelectorHorizontalPreview() {
-    TimeSignatureSelectorHorizontal(
+fun TimeSignatureSelectorPreview() {
+    TimeSignatureSelector(
         viewModel = viewModel<MockMetronomeViewModel>()
     )
 }

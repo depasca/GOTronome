@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,8 +23,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.components.AppMenu
+import com.pdp.gotronome.components.BasicSettingsCard
 import com.pdp.gotronome.components.NumSelector
-import com.pdp.gotronome.components.vertical.TimeSignatureSelectorVertical
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-SettingsScreen"
@@ -56,30 +55,17 @@ fun SettingsScreen(
         }
 
         FlowRow (
+            modifier = Modifier.fillMaxWidth().weight(1.0f).padding(top = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalArrangement = Arrangement.Top,
         ){
-            val modifier = Modifier.fillMaxWidth()
-            TimeSignatureSelectorVertical(modifier, viewModel)
-            // BPM
-            NumSelector(
-                "BPM",
-                false,
-                null,
-                viewModel.beatsPerMinute,
-                { },
-                { viewModel.setBeatsPerMinute(it) },
-                { viewModel.storeBeatsPerMinute() },
-                20,
-                240
-            )
+            val modifier = Modifier
+            BasicSettingsCard(viewModel = viewModel)
+            Spacer(modifier = Modifier.weight(1.0f))
             // Silent Bars
             NumSelector(
                 "Silent Bars",
-                false,
-                null,
                 viewModel.numSilentMeasures,
-                {},
                 { viewModel.setNumSilentMeasures(it) },
                 { viewModel.storeNumSilentMeasures() },
                 0,
@@ -88,18 +74,16 @@ fun SettingsScreen(
             // Bars
             NumSelector(
                 "Show Bars",
-                true,
-                viewModel.showBars,
                 viewModel.numBars,
-                { viewModel.setShowBars(it) },
                 { viewModel.setNumBars(it) },
                 { viewModel.storeNumBars() },
                 2,
                 32
             )
+            Spacer(modifier = Modifier.weight(1.0f))
         }
         Text(
-            modifier = Modifier.fillMaxWidth().weight(1.0f),
+            modifier = Modifier.fillMaxWidth(),
             text = "Tap anywhere to start/stop",
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyLarge,
@@ -108,9 +92,27 @@ fun SettingsScreen(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    name = "Vertical Preview",
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 720
+)
 @Composable
 fun SettingsScreenVerticalPreview() {
+    GOTronomeTheme {
+        SettingsScreen(viewModel =viewModel<MockMetronomeViewModel>())
+    }
+}
+
+@Preview(
+    name = "Horizontal Preview (Landscape)", // Optional name
+    showBackground = true,
+    widthDp = 720,
+    heightDp = 360
+)
+@Composable
+fun SettingsScreenHorizontalPreview() {
     GOTronomeTheme {
         SettingsScreen(viewModel = viewModel<MockMetronomeViewModel>())
     }
