@@ -59,7 +59,6 @@ fun SettingsScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalArrangement = Arrangement.Top,
         ){
-            val modifier = Modifier
             BasicSettingsCard(viewModel = viewModel)
             Spacer(modifier = Modifier.weight(1.0f))
             // Silent Bars
