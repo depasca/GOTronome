@@ -1,17 +1,22 @@
 package com.pdp.gotronome
 
-import com.pdp.gotronome.data.UserPreferencesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import android.util.Log
 
-class MockMetronomeViewModel(
-    userPreferencesRepository: UserPreferencesRepository,
-    metronome: Metronome
-) : MetronomeViewModel(
-    userPreferencesRepository, metronome
-) {
+private val TAG = "GOT-MockMetronomeViewModel"
+
+class MockMetronomeViewModel : MetronomeViewModel(null, null) {
+    override fun initialize() {
+        Log.d(TAG, "MockMetronomeViewModel init")
+    }
     override val beatsPerMinute: StateFlow<Int> = MutableStateFlow(120)
+    override val numSilentMeasures: StateFlow<Int> = MutableStateFlow(0)
+    override val showBars: StateFlow<Boolean> = MutableStateFlow(true)
+    override val numBars: StateFlow<Int> = MutableStateFlow(4)
+
     override fun setBeatsPerMinute(value: Int) {}
+    override fun storeBeatsPerMinute() {}
     override fun setTimeSignature(timeSignature: String) {}
     override fun start() {}
     override fun stop() {}
@@ -21,5 +26,8 @@ class MockMetronomeViewModel(
     override fun resetNumRuns() {}
     override fun setShowBars(value: Boolean) {}
     override fun setNumBars(value: Int) {}
+    override fun storeNumBars() {}
     override fun setNumSilentMeasures(value: Int) {}
+    override fun storeNumSilentMeasures() {}
+    override fun setPage(page: String){}
 }

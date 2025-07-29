@@ -17,8 +17,8 @@ const val PLAYING_STATE_STOPPED = 0
 const val PLAYING_STATE_SILENT = 2
 
 open class MetronomeViewModel(
-    private val userPreferencesRepository: UserPreferencesRepository,
-    private val metronome: Metronome
+    private val userPreferencesRepository: UserPreferencesRepository?,
+    private val metronome: Metronome?
 ): ViewModel(), MetronomeCallback {
 
     private val _page = MutableStateFlow<String>("settings")
@@ -43,58 +43,62 @@ open class MetronomeViewModel(
     val reviewPromptCounter: StateFlow<Int> = _reviewPromptCounter
 
     private val _showBars = MutableStateFlow<Boolean>(false)
-    val showBars: StateFlow<Boolean> = _showBars
+    open val showBars: StateFlow<Boolean> = _showBars
 
     private val _numBars = MutableStateFlow<Int>(4)
-    val numBars: StateFlow<Int> = _numBars
+    open val numBars: StateFlow<Int> = _numBars
 
     private val _numSilentMeasures = MutableStateFlow<Int>(0)
-    val numSilentMeasures: StateFlow<Int> = _numSilentMeasures
+    open val numSilentMeasures: StateFlow<Int> = _numSilentMeasures
 
     init {
         Log.d(TAG, "MetronomeViewModel init")
-        metronome.setCallback(this)
+        initialize()
+    }
+    open fun initialize() {
+        Log.d(TAG, "MetronomeViewModel init")
+        metronome!!.setCallback(this)
         viewModelScope.launch {
             Log.d(TAG, "Collecting user preferences")
-            userPreferencesRepository.reviewPromptCounterFlow.collect { value ->
+            userPreferencesRepository!!.reviewPromptCounterFlow.collect { value ->
                 Log.d(TAG, "Init ->Review prompt counter: $value")
                 _reviewPromptCounter.value = value
             }
         }
         viewModelScope.launch {
 
-            userPreferencesRepository.numRunsFlow.collect { value ->
+            userPreferencesRepository!!.numRunsFlow.collect { value ->
                 Log.d(TAG, "Init ->Num runs: $value")
                 _numRuns.value = value
             }
         }
         viewModelScope.launch {
-            userPreferencesRepository.beatsPerMinuteFlow.collect { value ->
+            userPreferencesRepository!!.beatsPerMinuteFlow.collect { value ->
                 Log.d(TAG, "Init ->Beats per minute: $value")
                 _beatsPerMinute.value = value
             }
         }
         viewModelScope.launch {
-            userPreferencesRepository.timeSignatureFlow.collect { value ->
+            userPreferencesRepository!!.timeSignatureFlow.collect { value ->
                 Log.d(TAG, "Init -> Time signature: $value")
                 _selectedTimeSignature.value = value
                 updateBeatsPerMeasure()
             }
         }
         viewModelScope.launch {
-            userPreferencesRepository.showBarsFlow.collect { value ->
+            userPreferencesRepository!!.showBarsFlow.collect { value ->
                 Log.d(TAG, "Init -> Show bars: $value")
                 _showBars.value = value
             }
         }
         viewModelScope.launch {
-            userPreferencesRepository.numBarsFlow.collect { value ->
+            userPreferencesRepository!!.numBarsFlow.collect { value ->
                 Log.d(TAG, "Init -> Num bars: $value")
                 _numBars.value = value
             }
         }
         viewModelScope.launch {
-            userPreferencesRepository.numSilentMeasuresFlow.collect { value ->
+            userPreferencesRepository!!.numSilentMeasuresFlow.collect { value ->
                 Log.d(TAG, "Init -> Num silent measures: $value")
                 _numSilentMeasures.value = value
                 metronome.setNumSilentMeasures(_numSilentMeasures.value)
@@ -108,17 +112,17 @@ open class MetronomeViewModel(
     }
 
     open fun start() {
-        metronome.startMetronome(_beatsPerMinute.value, _beatsPerMeasure.value)
+        metronome!!.startMetronome(_beatsPerMinute.value, _beatsPerMeasure.value)
     }
 
     open fun stop() {
-        metronome.stopMetronome()
+        metronome!!.stopMetronome()
         _currentBeat.value = 0
         _currentBar.value = 0
     }
 
     open fun getIsPlaying(): Int {
-        return metronome.getPlayingState()
+        return metronome!!.getPlayingState()
     }
 
     override fun onBeat(beatIndex: Int) {
@@ -127,7 +131,7 @@ open class MetronomeViewModel(
 
     open fun getCurrentBeat(): Int {
         val prevBeat = _currentBeat.value
-        _currentBeat.value = metronome.getCurrentBeat()
+        _currentBeat.value = metronome!!.getCurrentBeat()
         if(prevBeat != _currentBeat.value && _currentBeat.value == 1) {
             _currentBar.value++
             if(_currentBar.value > _numBars.value) {
@@ -147,7 +151,7 @@ open class MetronomeViewModel(
 
         viewModelScope.launch {
             Log.d(TAG, "Setting beats per measure to: ${_beatsPerMeasure.value}")
-            userPreferencesRepository.setTimeSignature(_selectedTimeSignature.value)
+            userPreferencesRepository!!.setTimeSignature(_selectedTimeSignature.value)
         }
     }
 
@@ -169,7 +173,7 @@ open class MetronomeViewModel(
     open fun setShowBars(value: Boolean) {
         _showBars.value = value
         viewModelScope.launch {
-            userPreferencesRepository.setShowBars(_showBars.value)
+            userPreferencesRepository!!.setShowBars(_showBars.value)
         }
     }
 
@@ -177,33 +181,33 @@ open class MetronomeViewModel(
         _numBars.value = value
     }
 
-    fun storeBeatsPerMinute() {
+    open fun storeBeatsPerMinute() {
         viewModelScope.launch {
-            userPreferencesRepository.setBeatsPerMinute(_beatsPerMinute.value)
+            userPreferencesRepository!!.setBeatsPerMinute(_beatsPerMinute.value)
         }
     }
 
-    fun storeNumBars(){
+    open fun storeNumBars(){
         viewModelScope.launch {
-            userPreferencesRepository.setNumBars(_numBars.value)
+            userPreferencesRepository!!.setNumBars(_numBars.value)
         }
     }
     open fun storeNumSilentMeasures() {
         viewModelScope.launch {
-            userPreferencesRepository.setNumSilentBars(_numSilentMeasures.value)
+            userPreferencesRepository!!.setNumSilentBars(_numSilentMeasures.value)
         }
     }
 
     open fun incrementNumRuns() {
         viewModelScope.launch {
-            userPreferencesRepository.incrementNumRuns()
+            userPreferencesRepository!!.incrementNumRuns()
         }
         _numRuns.value++
     }
 
     open fun incrementReviewPromptCounter() {
         viewModelScope.launch {
-            userPreferencesRepository.incrementReviewPromptCounter()
+            userPreferencesRepository!!.incrementReviewPromptCounter()
             userPreferencesRepository.reviewPromptCounterFlow.collect { value ->
                 _reviewPromptCounter.value = value
             }
@@ -212,16 +216,16 @@ open class MetronomeViewModel(
 
     open fun resetNumRuns() {
         viewModelScope.launch {
-            userPreferencesRepository.resetNumRuns()
+            userPreferencesRepository!!.resetNumRuns()
         }
         _numRuns.value = 0
     }
 
     open fun setNumSilentMeasures(value: Int) {
         _numSilentMeasures.value = value
-        metronome.setNumSilentMeasures(_numSilentMeasures.value)
+        metronome!!.setNumSilentMeasures(_numSilentMeasures.value)
         viewModelScope.launch {
-            userPreferencesRepository.setNumSilentBars(_numSilentMeasures.value)
+            userPreferencesRepository!!.setNumSilentBars(_numSilentMeasures.value)
             }
         }
 }
