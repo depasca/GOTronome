@@ -51,6 +51,9 @@ open class MetronomeViewModel(
     private val _numSilentMeasures = MutableStateFlow<Int>(0)
     open val numSilentMeasures: StateFlow<Int> = _numSilentMeasures
 
+    private val _advancedMode = MutableStateFlow<Boolean>(false)
+    val advancedMode: StateFlow<Boolean> = _advancedMode
+
     init {
         Log.d(TAG, "MetronomeViewModel init")
         initialize()
@@ -102,6 +105,12 @@ open class MetronomeViewModel(
                 Log.d(TAG, "Init -> Num silent measures: $value")
                 _numSilentMeasures.value = value
                 metronome.setNumSilentMeasures(_numSilentMeasures.value)
+            }
+        }
+        viewModelScope.launch {
+            userPreferencesRepository!!.advancedModeFlow.collect { value ->
+                Log.d(TAG, "Init -> Advanced mode: $value")
+                _advancedMode.value = value
             }
         }
         Log.d(TAG, "MetronomeViewModel init done")
@@ -228,6 +237,13 @@ open class MetronomeViewModel(
             userPreferencesRepository!!.setNumSilentBars(_numSilentMeasures.value)
             }
         }
+
+    open fun setAdvancedMode(value: Boolean) {
+        _advancedMode.value = value
+        viewModelScope.launch {
+            userPreferencesRepository!!.setAdvancedMode(_advancedMode.value)
+        }
+    }
 }
 
 class MetronomeViewModelFactory(

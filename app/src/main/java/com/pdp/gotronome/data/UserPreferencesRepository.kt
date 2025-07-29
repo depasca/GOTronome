@@ -24,6 +24,7 @@ val TIME_SIGNATURE = stringPreferencesKey("time_signature")
 val SHOW_BARS = booleanPreferencesKey("show_bars")
 val NUM_BARS = intPreferencesKey("num_bars")
 val NUM_SILENT_MEASURES = intPreferencesKey("num_silent_measures")
+val ADVANCED_MODE = booleanPreferencesKey("advanced_mode")
 
 val counterSequence = sequenceOf(5, 8, 13, 21)
 val timeSignatures = listOf("4/4", "3/4", "2/4", "2/2", "6/8")
@@ -31,6 +32,11 @@ val timeSignatures = listOf("4/4", "3/4", "2/4", "2/2", "6/8")
 class UserPreferencesRepository (
     private val context: Context
 ) {
+    val advancedModeFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[ADVANCED_MODE] ?: false
+        }
+
     val numSilentMeasuresFlow: Flow<Int> = context.dataStore.data
         .map { preferences ->
             preferences[NUM_SILENT_MEASURES] ?: 0
@@ -76,6 +82,12 @@ class UserPreferencesRepository (
     suspend fun resetNumRuns() {
         context.dataStore.edit { preferences ->
             preferences[NUM_RUNS] = 0
+        }
+    }
+
+    suspend fun setAdvancedMode(value: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[ADVANCED_MODE] = value
         }
     }
 
