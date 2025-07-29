@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,17 +28,17 @@ import com.pdp.gotronome.components.NumSelector
 import com.pdp.gotronome.components.vertical.TimeSignatureSelectorVertical
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
-private const val TAG = "GOT-SettingsScreenVertical"
+private const val TAG = "GOT-SettingsScreen"
 
 @Composable
-fun SettingsScreenVertical(
+fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: MetronomeViewModel
     ) {
-    Column(
+    Column (
         modifier = modifier.fillMaxSize()
-            .padding(top = 30.dp, bottom = 30.dp, start = 8.dp, end = 8.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
+            .padding(top = 30.dp, bottom = 0.dp, start = 8.dp, end = 8.dp),
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
     ) {
         Box(
@@ -54,22 +55,24 @@ fun SettingsScreenVertical(
             )
         }
 
-        Spacer(modifier = Modifier.weight(0.5f))
-        TimeSignatureSelectorVertical(modifier, viewModel)// BPM
-        // BMP
-        NumSelector(
-            "BPM",
-            false,
-            null,
-            viewModel.beatsPerMinute,
-            { },
-            {viewModel.setBeatsPerMinute(it)},
-            {viewModel.storeBeatsPerMinute()},
-            20,
-            240
-        )
-        Spacer(modifier = Modifier.weight(0.5f))
-        Row {
+        FlowRow (
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.Top,
+        ){
+            val modifier = Modifier.fillMaxWidth()
+            TimeSignatureSelectorVertical(modifier, viewModel)
+            // BPM
+            NumSelector(
+                "BPM",
+                false,
+                null,
+                viewModel.beatsPerMinute,
+                { },
+                { viewModel.setBeatsPerMinute(it) },
+                { viewModel.storeBeatsPerMinute() },
+                20,
+                240
+            )
             // Silent Bars
             NumSelector(
                 "Silent Bars",
@@ -77,27 +80,26 @@ fun SettingsScreenVertical(
                 null,
                 viewModel.numSilentMeasures,
                 {},
-                {viewModel.setNumSilentMeasures(it)},
-                {viewModel.storeNumSilentMeasures()},
+                { viewModel.setNumSilentMeasures(it) },
+                { viewModel.storeNumSilentMeasures() },
                 0,
                 7
             )
             // Bars
-             NumSelector(
-                 "Show Bars",
+            NumSelector(
+                "Show Bars",
                 true,
                 viewModel.showBars,
                 viewModel.numBars,
-                {viewModel.setShowBars(it)},
-                {viewModel.setNumBars(it)},
-                {viewModel.storeNumBars()},
+                { viewModel.setShowBars(it) },
+                { viewModel.setNumBars(it) },
+                { viewModel.storeNumBars() },
                 2,
                 32
             )
         }
-        Spacer(modifier = Modifier.weight(1.0f))
         Text(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().weight(1.0f),
             text = "Tap anywhere to start/stop",
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyLarge,
@@ -110,6 +112,6 @@ fun SettingsScreenVertical(
 @Composable
 fun SettingsScreenVerticalPreview() {
     GOTronomeTheme {
-        SettingsScreenVertical(viewModel = viewModel<MockMetronomeViewModel>())
+        SettingsScreen(viewModel = viewModel<MockMetronomeViewModel>())
     }
 }

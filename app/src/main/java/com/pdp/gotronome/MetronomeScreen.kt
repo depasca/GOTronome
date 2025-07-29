@@ -216,7 +216,7 @@ fun MetronomeScreen(
                                 })
 
                                 else ->
-                                    SettingsScreenHorizontal(viewModel = viewModel)
+                                    SettingsScreen(viewModel = viewModel)
                             }
                         }
                     }
@@ -304,7 +304,7 @@ fun MetronomeScreen(
                                 })
 
                                 else ->
-                                    SettingsScreenVertical(viewModel = viewModel)
+                                    SettingsScreen(viewModel = viewModel)
                             }
                         }
                     }
