@@ -32,7 +32,7 @@ fun TimeSignatureSelector(
     viewModel: MetronomeViewModel,
 ) {
     val radioOptions = timeSignatures
-    val selectedOption by viewModel.selectedTimeSignature.collectAsStateWithLifecycle()
+    val selectedOption by viewModel.timeSignature.collectAsStateWithLifecycle()
     Row(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
@@ -67,7 +67,6 @@ fun TimeSignatureSelector(
                         text = text,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.secondary,
-//                        modifier = Modifier.padding(start = 8.dp)
                     )
                 }
             }

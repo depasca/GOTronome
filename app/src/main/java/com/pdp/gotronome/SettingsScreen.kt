@@ -22,9 +22,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pdp.gotronome.components.AdvancedSettingsCard
 import com.pdp.gotronome.components.AppMenu
 import com.pdp.gotronome.components.BasicSettingsCard
-import com.pdp.gotronome.components.NumSelector
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-SettingsScreen"
@@ -61,24 +61,7 @@ fun SettingsScreen(
         ){
             BasicSettingsCard(viewModel = viewModel)
             Spacer(modifier = Modifier.weight(1.0f))
-            // Silent Bars
-            NumSelector(
-                "Silent Bars",
-                viewModel.numSilentMeasures,
-                { viewModel.setNumSilentMeasures(it) },
-                { viewModel.storeNumSilentMeasures() },
-                0,
-                7
-            )
-            // Bars
-            NumSelector(
-                "Show Bars",
-                viewModel.numBars,
-                { viewModel.setNumBars(it) },
-                { viewModel.storeNumBars() },
-                2,
-                32
-            )
+            AdvancedSettingsCard(viewModel = viewModel)
             Spacer(modifier = Modifier.weight(1.0f))
         }
         Text(
@@ -100,7 +83,9 @@ fun SettingsScreen(
 @Composable
 fun SettingsScreenVerticalPreview() {
     GOTronomeTheme {
-        SettingsScreen(viewModel =viewModel<MockMetronomeViewModel>())
+        val vm = viewModel<MockMetronomeViewModel>()
+        vm.setMode("Advanced")
+        SettingsScreen(viewModel = vm)
     }
 }
 
@@ -113,6 +98,8 @@ fun SettingsScreenVerticalPreview() {
 @Composable
 fun SettingsScreenHorizontalPreview() {
     GOTronomeTheme {
-        SettingsScreen(viewModel = viewModel<MockMetronomeViewModel>())
+        val vm = viewModel<MockMetronomeViewModel>()
+        vm.setMode("Bar loop")
+        SettingsScreen(viewModel = vm)
     }
 }

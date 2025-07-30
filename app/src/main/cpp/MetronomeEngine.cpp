@@ -10,6 +10,10 @@ const int PLAYING_STATE_SILENT = 2;
 MetronomeEngine::MetronomeEngine() {
     isPlaying = false;
     currentBeat = 0;
+    currentMeasure = 0;
+    silentMeasureCounter = 0;
+    isSilent = false;
+    silentMeasures = 0;
 }
 
 MetronomeEngine::~MetronomeEngine() {
@@ -118,7 +122,7 @@ float envelope(float t, float duration) {
 }
 
 void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
-    LOGD("MetronomeEngine::generateTick start, numFrames -> %d, currentBeat -> %d", numFrames, currentBeat);
+//    LOGD("MetronomeEngine::generateTick start, numFrames -> %d, currentBeat -> %d", numFrames, currentBeat);
     const float tickVolume = 0.3f;
     const float accentVolume = 0.5f;
     const int tickLength = static_cast<int>(sampleRate * 0.01); // 10ms tick
@@ -183,7 +187,7 @@ int MetronomeEngine::getPlayingState() {
 oboe::DataCallbackResult MetronomeEngine::onAudioReady(oboe::AudioStream *_stream,
                                                        void *audioData,
                                                        int32_t numFrames) {
-    float *floatData = static_cast<float *>(audioData);
+    auto *floatData = static_cast<float *>(audioData);
     generateTick(floatData, numFrames);
     return oboe::DataCallbackResult::Continue;
 }
@@ -216,5 +220,6 @@ void MetronomeEngine::sendBeatToJava(int beat) {
 
 void MetronomeEngine::setNumSilentMeasures(int val) {
     silentMeasures = val;
+    LOGD("MetronomeEngine::setNumSilentMeasures -> %d, isSilent -> %d", silentMeasures, isSilent);
 }
 

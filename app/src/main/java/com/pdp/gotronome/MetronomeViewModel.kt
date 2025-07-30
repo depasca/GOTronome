@@ -6,9 +6,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.pdp.gotronome.data.UserPreferencesRepository
 import com.pdp.gotronome.data.counterSequence
+import com.pdp.gotronome.data.modes
 import com.pdp.gotronome.data.timeSignatures
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 private const val TAG = "GOT-Settings"
@@ -33,8 +35,11 @@ open class MetronomeViewModel(
     private val _beatsPerMinute = MutableStateFlow<Int>(100)
     open val beatsPerMinute: StateFlow<Int> = _beatsPerMinute
 
-    private val _selectedTimeSignature = MutableStateFlow<String>(timeSignatures.first())
-    val selectedTimeSignature: StateFlow<String> = _selectedTimeSignature
+    private val _timeSignature = MutableStateFlow<String>(timeSignatures.first())
+    val timeSignature: StateFlow<String> = _timeSignature
+
+    private val _mode = MutableStateFlow<String>(modes.first())
+    val mode: StateFlow<String> = _mode
 
     private val _numRuns = MutableStateFlow<Int>(0)
     val numRuns: StateFlow<Int> = _numRuns
@@ -51,67 +56,52 @@ open class MetronomeViewModel(
     private val _numSilentMeasures = MutableStateFlow<Int>(0)
     open val numSilentMeasures: StateFlow<Int> = _numSilentMeasures
 
-    private val _advancedMode = MutableStateFlow<Boolean>(false)
-    val advancedMode: StateFlow<Boolean> = _advancedMode
-
     init {
-        Log.d(TAG, "MetronomeViewModel init")
         initialize()
     }
     open fun initialize() {
         Log.d(TAG, "MetronomeViewModel init")
         metronome!!.setCallback(this)
-        viewModelScope.launch {
-            Log.d(TAG, "Collecting user preferences")
-            userPreferencesRepository!!.reviewPromptCounterFlow.collect { value ->
-                Log.d(TAG, "Init ->Review prompt counter: $value")
-                _reviewPromptCounter.value = value
-            }
-        }
-        viewModelScope.launch {
 
-            userPreferencesRepository!!.numRunsFlow.collect { value ->
-                Log.d(TAG, "Init ->Num runs: $value")
-                _numRuns.value = value
-            }
-        }
         viewModelScope.launch {
-            userPreferencesRepository!!.beatsPerMinuteFlow.collect { value ->
-                Log.d(TAG, "Init ->Beats per minute: $value")
-                _beatsPerMinute.value = value
+            Log.d(TAG, "Collecting initial user preferences")
+
+            // Read reviewPromptCounter once
+            _reviewPromptCounter.value = userPreferencesRepository!!.reviewPromptCounterFlow.first()
+            Log.d(TAG, "Init -> Review prompt counter: ${_reviewPromptCounter.value}")
+
+            // Read numRuns once
+            _numRuns.value = userPreferencesRepository.numRunsFlow.first()
+            Log.d(TAG, "Init -> Num runs: ${_numRuns.value}")
+
+            // Read beatsPerMinute once
+            _beatsPerMinute.value = userPreferencesRepository.beatsPerMinuteFlow.first()
+            Log.d(TAG, "Init -> Beats per minute: ${_beatsPerMinute.value}")
+
+            // Read timeSignature once
+            val initialTimeSignature = userPreferencesRepository.timeSignatureFlow.first()
+            _timeSignature.value = initialTimeSignature
+            updateBeatsPerMeasure() // Ensure this is called after _timeSignature is set
+            Log.d(TAG, "Init -> Time signature: $initialTimeSignature")
+
+            _showBars.value = userPreferencesRepository.showBarsFlow.first()
+            Log.d(TAG, "Init -> Show bars: ${_showBars.value}")
+
+            _numBars.value = userPreferencesRepository.numBarsFlow.first()
+            Log.d(TAG, "Init -> Num bars: ${_numBars.value}")
+
+            val initialNumSilentMeasures = userPreferencesRepository.numSilentMeasuresFlow.first()
+            _numSilentMeasures.value = initialNumSilentMeasures
+            metronome.setNumSilentMeasures(initialNumSilentMeasures)
+            Log.d(TAG, "Init -> Num silent measures: $initialNumSilentMeasures")
+
+            // This has to go last to make sure the metronome has the correct parameters for the mode
+            val initialMode = userPreferencesRepository.modeFlow.first()
+            _mode.value = initialMode
+            if (initialMode != "Silent bars") { // Use the local variable initialMode
+                metronome.setNumSilentMeasures(0)
             }
-        }
-        viewModelScope.launch {
-            userPreferencesRepository!!.timeSignatureFlow.collect { value ->
-                Log.d(TAG, "Init -> Time signature: $value")
-                _selectedTimeSignature.value = value
-                updateBeatsPerMeasure()
-            }
-        }
-        viewModelScope.launch {
-            userPreferencesRepository!!.showBarsFlow.collect { value ->
-                Log.d(TAG, "Init -> Show bars: $value")
-                _showBars.value = value
-            }
-        }
-        viewModelScope.launch {
-            userPreferencesRepository!!.numBarsFlow.collect { value ->
-                Log.d(TAG, "Init -> Num bars: $value")
-                _numBars.value = value
-            }
-        }
-        viewModelScope.launch {
-            userPreferencesRepository!!.numSilentMeasuresFlow.collect { value ->
-                Log.d(TAG, "Init -> Num silent measures: $value")
-                _numSilentMeasures.value = value
-                metronome.setNumSilentMeasures(_numSilentMeasures.value)
-            }
-        }
-        viewModelScope.launch {
-            userPreferencesRepository!!.advancedModeFlow.collect { value ->
-                Log.d(TAG, "Init -> Advanced mode: $value")
-                _advancedMode.value = value
-            }
+            Log.d(TAG, "Init -> Mode: $initialMode")
         }
         Log.d(TAG, "MetronomeViewModel init done")
     }
@@ -155,23 +145,45 @@ open class MetronomeViewModel(
     }
 
     open fun setTimeSignature(timeSignature: String) {
-        _selectedTimeSignature.value = timeSignature
+        _timeSignature.value = timeSignature
         updateBeatsPerMeasure()
 
         viewModelScope.launch {
             Log.d(TAG, "Setting beats per measure to: ${_beatsPerMeasure.value}")
-            userPreferencesRepository!!.setTimeSignature(_selectedTimeSignature.value)
+            userPreferencesRepository!!.setTimeSignature(_timeSignature.value)
         }
     }
 
     fun updateBeatsPerMeasure() {
-        _beatsPerMeasure.value = when (_selectedTimeSignature.value) {
+        _beatsPerMeasure.value = when (_timeSignature.value) {
             "4/4" -> 4
             "3/4" -> 3
             "2/4" -> 2
             "2/2" -> 2
             "6/8" -> 6
             else -> 4
+        }
+    }
+
+    open fun setMode(mode: String) {
+        Log.d(TAG, "Setting mode to: $mode")
+        _mode.value = mode
+        viewModelScope.launch {
+            userPreferencesRepository!!.setMode(_mode.value)
+        }
+        when (_mode.value) {
+            "Basic" -> {
+                setShowBars(false)
+                metronome!!.setNumSilentMeasures(0)
+            }
+            "Bar loop" -> {
+                setShowBars(true)
+                metronome!!.setNumSilentMeasures(0)
+            }
+            "Silent bars" -> {
+                setShowBars(false)
+                metronome!!.setNumSilentMeasures(_numSilentMeasures.value)
+            }
         }
     }
 
@@ -235,13 +247,6 @@ open class MetronomeViewModel(
         metronome!!.setNumSilentMeasures(_numSilentMeasures.value)
         viewModelScope.launch {
             userPreferencesRepository!!.setNumSilentBars(_numSilentMeasures.value)
-            }
-        }
-
-    open fun setAdvancedMode(value: Boolean) {
-        _advancedMode.value = value
-        viewModelScope.launch {
-            userPreferencesRepository!!.setAdvancedMode(_advancedMode.value)
         }
     }
 }

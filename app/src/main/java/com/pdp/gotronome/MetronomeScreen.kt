@@ -64,6 +64,7 @@ fun MetronomeScreen(
     val numRuns by viewModel.numRuns.collectAsStateWithLifecycle()
     val showBars by viewModel.showBars.collectAsStateWithLifecycle()
     val numBars by viewModel.numBars.collectAsStateWithLifecycle()
+    val playingMode by viewModel.mode.collectAsStateWithLifecycle()
 
     var playingState by remember { mutableStateOf(0) }
     var currentBeat by remember { mutableIntStateOf(0) }
@@ -75,7 +76,8 @@ fun MetronomeScreen(
                 currentBeat = viewModel.getCurrentBeat()
                 currentBar = viewModel.getCurrentBar()
                 playingState = viewModel.getIsPlaying()
-                if (playingState == PLAYING_STATE_SILENT) {
+                if (playingMode == "Silent bars" &&
+                    playingState == PLAYING_STATE_SILENT) {
                     currentBeat = 0
                     currentBar = 0
                 }

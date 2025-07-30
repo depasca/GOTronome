@@ -1,7 +1,6 @@
 package com.pdp.gotronome.ui.theme
 
 import android.os.Build
-import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -48,7 +47,6 @@ fun GOTronomeTheme(
         darkTheme -> GOTDarkColorScheme
         else -> GOTLightColorScheme
     }
-    Log.d(TAG, "isSystemInDarkTheme(): $darkTheme")
 
     MaterialTheme( // …3
         colorScheme = colorScheme,

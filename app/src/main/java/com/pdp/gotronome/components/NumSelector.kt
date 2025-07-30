@@ -2,8 +2,8 @@ package com.pdp.gotronome.components
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -18,11 +18,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.MockMetronomeViewModel
@@ -93,8 +91,8 @@ fun NumSelector(
             }
         }
     }
-    Row(
-        verticalAlignment = Alignment.CenterVertically
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
     ){
         Text(
             text = label,
@@ -102,45 +100,47 @@ fun NumSelector(
             color = MaterialTheme.colorScheme.secondary,
             textAlign = TextAlign.Center
         )
-        IconButton(
-            interactionSource = leftInteractionSource,
-            onClick = {
-                if (!leftLongPressed) { // Only trigger single click if not a long press
-                    val value = max(minVal, _numProperty - 1)
-                    propertySetter(value)
-                }
-            },
-            enabled = +_numProperty > minVal,
-        ) {
-            Icon(
-                imageVector = Icons.Filled.KeyboardArrowDown, // More distinct icon
-                tint = MaterialTheme.colorScheme.secondary,
-                contentDescription = "Decrease Num Bars"
+        Row (
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            IconButton(
+                interactionSource = leftInteractionSource,
+                onClick = {
+                    if (!leftLongPressed) { // Only trigger single click if not a long press
+                        val value = max(minVal, _numProperty - 1)
+                        propertySetter(value)
+                    }
+                },
+                enabled = +_numProperty > minVal,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowDown, // More distinct icon
+                    tint = MaterialTheme.colorScheme.secondary,
+                    contentDescription = "Decrease Num Bars"
+                )
+            }
+            Text(
+                text = _numProperty.toString(),
+                style = MaterialTheme.typography.bodyLarge, // Larger, more prominent
+                color = MaterialTheme.colorScheme.secondary,
+                textAlign = TextAlign.Center
             )
-        }
-        Text(
-            text = _numProperty.toString(),
-            style = MaterialTheme.typography.bodyLarge, // Larger, more prominent
-            color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier
-                .widthIn(min = 16.dp), // Ensure minimum width for text
-            textAlign = TextAlign.Center
-        )
-        IconButton(
-            interactionSource = rightInteractionSource,
-            onClick = {
-                if (!rightLongPressed) { // Only trigger single click if not a long press
-                    val value = min(maxVal, _numProperty + 1)
-                    propertySetter(value)
-                }
-            },
-            enabled = _numProperty <= maxVal,
-        ) {
-            Icon(
-                imageVector = Icons.Filled.KeyboardArrowUp, // More distinct icon
-                tint = MaterialTheme.colorScheme.secondary,
-                contentDescription = "Increase Num Bars"
-            )
+            IconButton(
+                interactionSource = rightInteractionSource,
+                onClick = {
+                    if (!rightLongPressed) { // Only trigger single click if not a long press
+                        val value = min(maxVal, _numProperty + 1)
+                        propertySetter(value)
+                    }
+                },
+                enabled = _numProperty <= maxVal,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowUp, // More distinct icon
+                    tint = MaterialTheme.colorScheme.secondary,
+                    contentDescription = "Increase Num Bars"
+                )
+            }
         }
     }
 }
@@ -150,7 +150,7 @@ fun NumSelector(
 fun NumSelectorPreview() {
     val viewModel = viewModel<MockMetronomeViewModel>()
     NumSelector(
-        "Bars",
+        "Num Bars",
         viewModel.numBars,
         {viewModel.setNumBars(it)},
         {viewModel.storeNumBars()},

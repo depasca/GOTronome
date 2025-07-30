@@ -6,7 +6,7 @@
 #include <atomic>
 #include <jni.h>
 
-#define MODULE_NAME  "GOTCPP"
+#define MODULE_NAME  "GOT-CPP"
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, MODULE_NAME, __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, MODULE_NAME, __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, MODULE_NAME, __VA_ARGS__)
@@ -24,7 +24,7 @@ public:
 //    void pause();
     oboe::Result stop();
     static double getCurrentTimeSeconds();
-    int getCurrentBeat() const;
+    [[nodiscard]] int getCurrentBeat() const;
 
     oboe::DataCallbackResult onAudioReady(oboe::AudioStream *stream,
                                           void *audioData,
