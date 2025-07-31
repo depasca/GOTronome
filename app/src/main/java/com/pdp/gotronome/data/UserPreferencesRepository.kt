@@ -35,7 +35,7 @@ class UserPreferencesRepository (
 ) {
     val numSilentMeasuresFlow: Flow<Int> = context.dataStore.data
         .map { preferences ->
-            preferences[NUM_SILENT_MEASURES] ?: 0
+            preferences[NUM_SILENT_MEASURES] ?: 1
         }
     val reviewPromptCounterFlow: Flow<Int> = context.dataStore.data
         .map { preferences ->

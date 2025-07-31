@@ -45,6 +45,7 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
     ) {
+        Spacer(modifier = Modifier.weight(0.1f))
         Box(
             modifier = Modifier.fillMaxWidth()
                 .background(MaterialTheme.colorScheme.primary)
@@ -58,6 +59,7 @@ fun SettingsScreen(
                 contentDescription = "GOTronome banner"
             )
         }
+        Spacer(modifier = Modifier.weight(0.1f))
 
         FlowRow(
             modifier = Modifier.fillMaxSize(),
@@ -67,7 +69,7 @@ fun SettingsScreen(
             BasicSettingsCard(viewModel = viewModel)
             AdvancedSettingsCard(viewModel = viewModel)
         }
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1.0f))
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = "Tap anywhere to start/stop",
