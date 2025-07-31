@@ -169,20 +169,20 @@ open class MetronomeViewModel(
         Log.d(TAG, "Setting mode to: $mode")
         _mode.value = mode
         viewModelScope.launch {
-            userPreferencesRepository!!.setMode(_mode.value)
+            userPreferencesRepository?.setMode(_mode.value)
         }
         when (_mode.value) {
             "Basic" -> {
                 setShowBars(false)
-                metronome!!.setNumSilentMeasures(0)
+                metronome?.setNumSilentMeasures(0)
             }
             "Bar loop" -> {
                 setShowBars(true)
-                metronome!!.setNumSilentMeasures(0)
+                metronome?.setNumSilentMeasures(0)
             }
             "Silent bars" -> {
                 setShowBars(false)
-                metronome!!.setNumSilentMeasures(_numSilentMeasures.value)
+                metronome?.setNumSilentMeasures(_numSilentMeasures.value)
             }
         }
     }

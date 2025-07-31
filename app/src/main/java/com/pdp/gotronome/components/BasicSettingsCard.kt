@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
@@ -29,9 +32,9 @@ fun BasicSettingsCard(
     ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = Color.Transparent,
         )
     ) {
         Column(
@@ -51,20 +54,30 @@ fun BasicSettingsCard(
                 }
             }
             FlowRow (
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(all = 0.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalArrangement = Arrangement.Top,
-            ){
+            ) {
                 TimeSignatureSelector(viewModel = viewModel)
-                // BPM
-                NumSelector(
-                    "BPM",
-                    viewModel.beatsPerMinute,
-                    { viewModel.setBeatsPerMinute(it) },
-                    { viewModel.storeBeatsPerMinute() },
-                    20,
-                    240
-                )
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 0.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "BPM",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                        textAlign = TextAlign.Center
+                    )
+                    // BPM
+                    NumSelector(
+                        viewModel.beatsPerMinute,
+                        { viewModel.setBeatsPerMinute(it) },
+                        { viewModel.storeBeatsPerMinute() },
+                        20,
+                        240
+                    )
+                }
             }
         }
     }

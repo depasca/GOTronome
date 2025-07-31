@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,9 +36,12 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: MetronomeViewModel
     ) {
-    Column (
+    val scrollState = rememberScrollState()
+
+    Column(
         modifier = modifier.fillMaxSize()
-            .padding(top = 30.dp, bottom = 0.dp, start = 8.dp, end = 8.dp),
+            .verticalScroll(scrollState)
+            .padding(top = 0.dp, bottom = 0.dp, start = 8.dp, end = 8.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
     ) {
@@ -54,16 +59,15 @@ fun SettingsScreen(
             )
         }
 
-        FlowRow (
-            modifier = Modifier.fillMaxWidth().weight(1.0f).padding(top = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+        FlowRow(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.Center,
             verticalArrangement = Arrangement.Top,
-        ){
+        ) {
             BasicSettingsCard(viewModel = viewModel)
-            Spacer(modifier = Modifier.weight(1.0f))
             AdvancedSettingsCard(viewModel = viewModel)
-            Spacer(modifier = Modifier.weight(1.0f))
         }
+        Spacer(modifier = Modifier.weight(1f))
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = "Tap anywhere to start/stop",
@@ -84,7 +88,7 @@ fun SettingsScreen(
 fun SettingsScreenVerticalPreview() {
     GOTronomeTheme {
         val vm = viewModel<MockMetronomeViewModel>()
-        vm.setMode("Advanced")
+        vm.setMode("Silent bars")
         SettingsScreen(viewModel = vm)
     }
 }

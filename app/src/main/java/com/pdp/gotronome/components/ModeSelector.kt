@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -45,7 +47,7 @@ fun ModeSelector(
         )
         radioOptions.forEach { text ->
             Row(
-                Modifier
+                Modifier.height(36.dp).fillMaxWidth()
                     .selectable(
                         selected = (text == selectedMode),
                         onClick = { viewModel.setMode(text) },
@@ -63,6 +65,30 @@ fun ModeSelector(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.secondary,
                 )
+                if (text == selectedMode) {
+                    when (text) {
+                        "Silent bars" -> {
+                            NumSelector(
+                                viewModel.numSilentMeasures,
+                                { viewModel.setNumSilentMeasures(it) },
+                                { viewModel.storeNumSilentMeasures() },
+                                1,
+                                10
+                            )
+                        }
+
+                        "Bar loop" -> {
+                            NumSelector(
+                                viewModel.numBars,
+                                { viewModel.setNumBars(it) },
+                                { viewModel.storeNumBars() },
+                                2,
+                                32
+                            )
+                        }
+                        else -> {}
+                    }
+                }
             }
         }
     }
@@ -73,8 +99,28 @@ fun ModeSelector(
     backgroundColor = 0xFFF0EAE2
 )
 @Composable
-fun ModeSelectorPreview() {
-    ModeSelector(
-        viewModel = viewModel<MockMetronomeViewModel>()
-    )
+fun ModeSelectorPreviewBasic() {
+    val vm = viewModel<MockMetronomeViewModel>()
+    vm.setMode("Basic")
+    ModeSelector(viewModel = vm)
+}
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFF0EAE2
+)
+@Composable
+fun ModeSelectorPreviewAdvanced() {
+    val vm = viewModel<MockMetronomeViewModel>()
+    vm.setMode("Silent bars")
+    ModeSelector(viewModel = vm)
+}
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFF0EAE2
+)
+@Composable
+fun ModeSelectorPreviewBarloop() {
+    val vm = viewModel<MockMetronomeViewModel>()
+    vm.setMode("Bar loop")
+    ModeSelector(viewModel = vm)
 }

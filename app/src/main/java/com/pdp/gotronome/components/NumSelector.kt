@@ -4,6 +4,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -18,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,10 +32,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.max
 import kotlin.math.min
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun NumSelector(
-    label: String,
     numProperty: StateFlow<Int>,
     propertySetter: (Int) -> Unit,
     propertyStorer: () -> Unit,
@@ -91,15 +95,11 @@ fun NumSelector(
             }
         }
     }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+    FlowRow(
+        modifier = Modifier.padding(all=8.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement = Arrangement.Center
     ){
-        Text(
-            text = label,
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.secondary,
-            textAlign = TextAlign.Center
-        )
         Row (
             verticalAlignment = Alignment.CenterVertically
         ){
@@ -150,7 +150,6 @@ fun NumSelector(
 fun NumSelectorPreview() {
     val viewModel = viewModel<MockMetronomeViewModel>()
     NumSelector(
-        "Num Bars",
         viewModel.numBars,
         {viewModel.setNumBars(it)},
         {viewModel.storeNumBars()},

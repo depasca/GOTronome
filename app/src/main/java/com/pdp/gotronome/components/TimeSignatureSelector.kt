@@ -34,6 +34,7 @@ fun TimeSignatureSelector(
     val radioOptions = timeSignatures
     val selectedOption by viewModel.timeSignature.collectAsStateWithLifecycle()
     Row(
+        modifier = Modifier.padding(all = 8.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -44,13 +45,13 @@ fun TimeSignatureSelector(
             textAlign = TextAlign.Center,
         )
         FlowRow (
-            modifier = Modifier.selectableGroup(),
+            modifier = Modifier.selectableGroup().padding(start = 8.dp),
             verticalArrangement = Arrangement.Center,
             maxItemsInEachRow = 3,
         ) {
             radioOptions.forEach { text ->
                 Row(
-                    Modifier
+                    Modifier.padding(all = 8.dp)
                         .selectable(
                             selected = (text == selectedOption),
                             onClick = { viewModel.setTimeSignature(text) },
@@ -59,7 +60,6 @@ fun TimeSignatureSelector(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
-                        modifier = Modifier.padding(horizontal = 8.dp),
                         selected = (text == selectedOption),
                         onClick = null // null recommended for accessibility with screen readers
                     )
