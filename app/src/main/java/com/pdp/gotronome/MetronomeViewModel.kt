@@ -104,8 +104,7 @@ open class MetronomeViewModel(
             Log.d(TAG, "Init -> Num silent measures: $initialNumSilentMeasures")
 
             val initialMode = userPreferencesRepository.modeFlow.first()
-            _mode.value = initialMode
-            metronome.setSilentMeasuresEnabled(initialMode == MODE_SILENT_BARS)
+            setMode(initialMode)
             Log.d(TAG, "Init -> Mode: $initialMode")
         }
         Log.d(TAG, "MetronomeViewModel init done")
