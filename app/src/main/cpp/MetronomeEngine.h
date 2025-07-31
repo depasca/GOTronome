@@ -33,6 +33,8 @@ public:
     int getPlayingState();
     void setNumSilentMeasures(int numSilentMeasures);
 
+    void setSilentMeasuresEnabled(bool b);
+
 private:
     std::shared_ptr<oboe::AudioStream> stream;
     jboolean isPlaying = false;
@@ -44,6 +46,7 @@ private:
     int beatsPerMeasure = 4;
     int silentMeasures = 0;
     int silentMeasureCounter = 0;
+    bool silentMeasureEnabled = false;
     bool isSilent = false;
     std::mutex mLock;
 

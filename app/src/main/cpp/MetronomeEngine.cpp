@@ -136,15 +136,16 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
             if (currentBeat > beatsPerMeasure){
                 currentBeat = 1;
                 currentMeasure++;
-                if(isSilent){
-                    silentMeasureCounter++;
-                    if(silentMeasureCounter >= silentMeasures){
-                        isSilent = false;
-                        silentMeasureCounter = 0;
+                if(silentMeasureEnabled) {
+                    if (isSilent) {
+                        silentMeasureCounter++;
+                        if (silentMeasureCounter >= silentMeasures) {
+                            isSilent = false;
+                            silentMeasureCounter = 0;
+                        }
+                    } else if (silentMeasures > 0) {
+                        isSilent = true;
                     }
-                }
-                else if(silentMeasures > 0){
-                    isSilent = true;
                 }
             }
         }
@@ -221,5 +222,9 @@ void MetronomeEngine::sendBeatToJava(int beat) {
 void MetronomeEngine::setNumSilentMeasures(int val) {
     silentMeasures = val;
     LOGD("MetronomeEngine::setNumSilentMeasures -> %d, isSilent -> %d", silentMeasures, isSilent);
+}
+
+void MetronomeEngine::setSilentMeasuresEnabled(bool b) {
+    silentMeasureEnabled = b;
 }
 

@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.pdp.gotronome.data.FOURFOURS
+import com.pdp.gotronome.data.MODE_BAR_LOOP
+import com.pdp.gotronome.data.MODE_BASIC
+import com.pdp.gotronome.data.MODE_SILENT_BARS
 import com.pdp.gotronome.data.SIXEIGHTS
 import com.pdp.gotronome.data.THREEFOURS
 import com.pdp.gotronome.data.TWOFOURS
@@ -100,12 +103,9 @@ open class MetronomeViewModel(
             metronome.setNumSilentMeasures(initialNumSilentMeasures)
             Log.d(TAG, "Init -> Num silent measures: $initialNumSilentMeasures")
 
-            // This has to go last to make sure the metronome has the correct parameters for the mode
             val initialMode = userPreferencesRepository.modeFlow.first()
             _mode.value = initialMode
-            if (initialMode != "Silent bars") { // Use the local variable initialMode
-                metronome.setNumSilentMeasures(0)
-            }
+            metronome.setSilentMeasuresEnabled(initialMode == MODE_SILENT_BARS)
             Log.d(TAG, "Init -> Mode: $initialMode")
         }
         Log.d(TAG, "MetronomeViewModel init done")
@@ -177,17 +177,18 @@ open class MetronomeViewModel(
             userPreferencesRepository?.setMode(_mode.value)
         }
         when (_mode.value) {
-            "Basic" -> {
-                setShowBars(false)
-                metronome?.setNumSilentMeasures(0)
-            }
-            "Bar loop" -> {
+            MODE_BAR_LOOP -> {
                 setShowBars(true)
-                metronome?.setNumSilentMeasures(0)
+                metronome?.setSilentMeasuresEnabled(false)
             }
-            "Silent bars" -> {
+            MODE_SILENT_BARS -> {
                 setShowBars(false)
                 metronome?.setNumSilentMeasures(_numSilentMeasures.value)
+                metronome?.setSilentMeasuresEnabled(true)
+            }
+            MODE_BASIC -> {
+                setShowBars(false)
+                metronome?.setSilentMeasuresEnabled(false)
             }
         }
     }
