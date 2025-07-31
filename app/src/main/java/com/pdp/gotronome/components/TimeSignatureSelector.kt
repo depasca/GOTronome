@@ -45,7 +45,7 @@ fun TimeSignatureSelector(
             textAlign = TextAlign.Center,
         )
         FlowRow (
-            modifier = Modifier.selectableGroup().padding(start = 8.dp),
+            modifier = Modifier.selectableGroup().padding(start = 34.dp),
             verticalArrangement = Arrangement.Center,
             maxItemsInEachRow = 3,
         ) {
