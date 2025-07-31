@@ -4,6 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.pdp.gotronome.data.FOURFOURS
+import com.pdp.gotronome.data.SIXEIGHTS
+import com.pdp.gotronome.data.THREEFOURS
+import com.pdp.gotronome.data.TWOFOURS
+import com.pdp.gotronome.data.TWOTWOS
 import com.pdp.gotronome.data.UserPreferencesRepository
 import com.pdp.gotronome.data.counterSequence
 import com.pdp.gotronome.data.modes
@@ -156,11 +161,11 @@ open class MetronomeViewModel(
 
     fun updateBeatsPerMeasure() {
         _beatsPerMeasure.value = when (_timeSignature.value) {
-            "4/4" -> 4
-            "3/4" -> 3
-            "2/4" -> 2
-            "2/2" -> 2
-            "6/8" -> 6
+            FOURFOURS -> 4
+            THREEFOURS -> 3
+            TWOFOURS -> 2
+            TWOTWOS -> 2
+            SIXEIGHTS -> 6
             else -> 4
         }
     }

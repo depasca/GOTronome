@@ -24,6 +24,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.MetronomeViewModel
 import com.pdp.gotronome.MockMetronomeViewModel
+import com.pdp.gotronome.data.MODE_BAR_LOOP
+import com.pdp.gotronome.data.MODE_SILENT_BARS
 import com.pdp.gotronome.data.modes
 
 private const val TAG = "GOT-TimeSignatureSelectorVertical"
@@ -67,7 +69,7 @@ fun ModeSelector(
                 )
                 if (text == selectedMode) {
                     when (text) {
-                        "Silent bars" -> {
+                        MODE_SILENT_BARS -> {
                             NumSelector(
                                 viewModel.numSilentMeasures,
                                 { viewModel.setNumSilentMeasures(it) },
@@ -76,8 +78,7 @@ fun ModeSelector(
                                 10
                             )
                         }
-
-                        "Bar loop" -> {
+                        MODE_BAR_LOOP -> {
                             NumSelector(
                                 viewModel.numBars,
                                 { viewModel.setNumBars(it) },

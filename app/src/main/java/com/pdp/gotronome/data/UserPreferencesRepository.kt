@@ -25,10 +25,19 @@ val SHOW_BARS = booleanPreferencesKey("show_bars")
 val NUM_BARS = intPreferencesKey("num_bars")
 val NUM_SILENT_MEASURES = intPreferencesKey("num_silent_measures")
 val MODE = stringPreferencesKey("mode")
-
 val counterSequence = sequenceOf(5, 8, 13, 21)
-val timeSignatures = listOf("4/4", "3/4", "2/4", "2/2", "6/8")
-val modes = listOf("Basic", "Silent bars", "Bar loop")
+
+const val FOURFOURS = "4/4"
+const val THREEFOURS = "3/4"
+const val TWOFOURS = "2/4"
+const val TWOTWOS = "2/2"
+const val SIXEIGHTS = "6/8"
+val timeSignatures = listOf(FOURFOURS, THREEFOURS, TWOFOURS, TWOTWOS, SIXEIGHTS)
+
+const val MODE_BASIC = "Basic"
+const val MODE_SILENT_BARS = "Silent bars"
+const val MODE_BAR_LOOP = "Bar loop"
+val modes = listOf(MODE_BASIC, MODE_SILENT_BARS, MODE_BAR_LOOP)
 
 class UserPreferencesRepository (
     private val context: Context
