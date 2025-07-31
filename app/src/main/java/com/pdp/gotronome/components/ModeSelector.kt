@@ -49,7 +49,8 @@ fun ModeSelector(
         )
         radioOptions.forEach { text ->
             Row(
-                Modifier.height(36.dp).fillMaxWidth()
+                Modifier
+                    .height(36.dp)
                     .selectable(
                         selected = (text == selectedMode),
                         onClick = { viewModel.setMode(text) },

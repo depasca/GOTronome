@@ -33,13 +33,13 @@ private const val TAG = "GOT-SettingsScreen"
 
 @Composable
 fun SettingsScreen(
-    modifier: Modifier = Modifier,
     viewModel: MetronomeViewModel
     ) {
     val scrollState = rememberScrollState()
 
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(top = 0.dp, bottom = 0.dp, start = 8.dp, end = 8.dp),
         verticalArrangement = Arrangement.Top,
