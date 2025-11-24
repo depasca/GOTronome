@@ -148,7 +148,7 @@ fun MetronomeScreen(
                                     if (playingState != PLAYING_STATE_STOPPED) {
                                         viewModel.stop(); Log.d(TAG, "Metronome stopped")
                                         viewModel.incrementNumRuns()
-                                    } else {
+                                    } else if(viewModel.page.value != "info") {
                                         viewModel.start(); Log.d(TAG, "Metronome started")
                                     }
                                 },
@@ -234,7 +234,7 @@ fun MetronomeScreen(
                                     if (playingState != PLAYING_STATE_STOPPED) {
                                         viewModel.stop(); Log.d(TAG, "Metronome stopped")
                                         viewModel.incrementNumRuns()
-                                    } else {
+                                    } else if(viewModel.page.value != "info") {
                                         viewModel.start(); Log.d(TAG, "Metronome started")
                                     }
                                 },
