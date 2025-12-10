@@ -1,5 +1,7 @@
 # GOTronome - Metronome and Rhythm trainer
 
+(iOS version here: https://github.com/depasca/iGOTronome)
+
 A precision metronome designed for real musicians, rehearsals, and skill training — available on Android and iOS.
 
 GOTronome is an ultra-responsive visual metronome built for band practice, silent rhythm training, and phrase looping.
