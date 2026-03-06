@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
@@ -71,7 +70,7 @@ fun ModeSelector(
                 if (text == selectedMode) {
                     when (text) {
                         MODE_SILENT_BARS -> {
-                            NumSelector(
+                            NumSlider(
                                 viewModel.numSilentMeasures,
                                 { viewModel.setNumSilentMeasures(it) },
                                 { viewModel.storeNumSilentMeasures() },
@@ -80,7 +79,7 @@ fun ModeSelector(
                             )
                         }
                         MODE_BAR_LOOP -> {
-                            NumSelector(
+                            NumSlider(
                                 viewModel.numBars,
                                 { viewModel.setNumBars(it) },
                                 { viewModel.storeNumBars() },

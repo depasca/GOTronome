@@ -70,7 +70,7 @@ fun BasicSettingsCard(
                         textAlign = TextAlign.Center
                     )
                     // BPM
-                    NumSelector(
+                    NumSlider(
                         viewModel.beatsPerMinute,
                         { viewModel.setBeatsPerMinute(it) },
                         { viewModel.storeBeatsPerMinute() },
