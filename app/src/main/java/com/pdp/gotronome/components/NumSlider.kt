@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import kotlin.math.roundToInt
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NumSlider(
     numProperty: StateFlow<Int>,
@@ -31,19 +33,30 @@ fun NumSlider(
 ){
     val _numProperty by numProperty.collectAsStateWithLifecycle()
     var sliderPosition by remember { mutableFloatStateOf(_numProperty.toFloat()) }
-    Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(12.dp) ){
-        Text(text = sliderPosition.toString(), color = MaterialTheme.colorScheme.secondary,)
+    Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp) ){
+        Text(text = sliderPosition.toInt().toString(), color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(16.dp))
         Slider(
             value = sliderPosition,
             onValueChange = { sliderPosition = it.roundToInt().toFloat() },
-            onValueChangeFinished = { propertySetter(sliderPosition.toInt()); propertyStorer() },
-            colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.secondary,
-                activeTrackColor = MaterialTheme.colorScheme.secondary,
-                inactiveTrackColor = MaterialTheme.colorScheme.secondaryContainer,
-            ),
-            steps = maxVal - minVal - 1,
-            valueRange = minVal.toFloat()..maxVal.toFloat()
+            onValueChangeFinished = {
+                propertySetter(sliderPosition.toInt())
+                propertyStorer()
+            },
+            valueRange = minVal.toFloat()..maxVal.toFloat(),
+            // Use the track parameter to remove the "stops" (dots)
+            track = { sliderState ->
+                SliderDefaults.Track(
+                    sliderState = sliderState,
+                    modifier = Modifier,
+                    drawStopIndicator = null, // THIS REMOVES THE DOT
+                    thumbTrackGapSize = 0.dp,  // THIS REMOVES THE GAP
+                    trackInsideCornerSize = 0.dp,
+                    colors = SliderDefaults.colors(
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.24f),
+                    )
+                )
+            }
         )
     }
 }

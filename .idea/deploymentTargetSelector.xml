@@ -4,10 +4,21 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-07-31T13:55:48.968742963Z">
+        <DropdownSelection timestamp="2026-03-06T16:31:41.930658283Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/home/depa/.android/avd/Medium_Phone.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/depa/.android/avd/Small_Phone_API_35.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="InfoScreenPreviewDark - Info Screen Dark">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-03-06T16:31:30.271697776Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/depa/.android/avd/Small_Phone_API_35.avd" />
             </handle>
           </Target>
         </DropdownSelection>
