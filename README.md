@@ -102,7 +102,7 @@ MIT License — see LICENSE
  for details.
  
 GOTronome is implemented in Jetpack Compose and uses Oboe for real-time audio. It is lightweight and simple.
-Oboe is accessed through JNI. Here's a simple diagram that illustrates the architevture:
+Oboe is accessed through JNI. Here's a simple diagram that illustrates the architecture:
 
 ![image](https://github.com/user-attachments/assets/7551b739-2e54-4a11-a286-216cc80a3be1)
 
