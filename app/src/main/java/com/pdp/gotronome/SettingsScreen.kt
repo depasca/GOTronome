@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -23,10 +24,14 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.pdp.gotronome.components.AdvancedSettingsCard
 import com.pdp.gotronome.components.AppMenu
 import com.pdp.gotronome.components.BasicSettingsCard
+import com.pdp.gotronome.components.ModeToggle
+import com.pdp.gotronome.components.NumSelector
+import com.pdp.gotronome.data.MODE_BAR_LOOP
+import com.pdp.gotronome.data.MODE_SILENT_BARS
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-SettingsScreen"
@@ -36,6 +41,7 @@ fun SettingsScreen(
     viewModel: MetronomeViewModel
     ) {
     val scrollState = rememberScrollState()
+    val mode by viewModel.mode.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -66,8 +72,26 @@ fun SettingsScreen(
             horizontalArrangement = Arrangement.Center,
             verticalArrangement = Arrangement.Top,
         ) {
+            ModeToggle(viewModel)
             BasicSettingsCard(viewModel = viewModel)
-            AdvancedSettingsCard(viewModel = viewModel)
+            if (mode == MODE_SILENT_BARS) {
+                NumSelector(
+                    viewModel.numSilentMeasures,
+                    { viewModel.setNumSilentMeasures(it) },
+                    { viewModel.storeNumSilentMeasures() },
+                    1,
+                    10
+                )
+            }
+            else if(mode == MODE_BAR_LOOP) {
+                NumSelector(
+                    viewModel.numBars,
+                    { viewModel.setNumBars(it) },
+                    { viewModel.storeNumBars() },
+                    2,
+                    32
+                )
+            }
         }
         Spacer(modifier = Modifier.weight(1.0f))
         Text(
