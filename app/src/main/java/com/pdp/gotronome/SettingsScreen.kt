@@ -76,6 +76,7 @@ fun SettingsScreen(
             BasicSettingsCard(viewModel = viewModel)
             if (mode == MODE_SILENT_BARS) {
                 NumSelector(
+                    label = "Silent bars",
                     viewModel.numSilentMeasures,
                     { viewModel.setNumSilentMeasures(it) },
                     { viewModel.storeNumSilentMeasures() },
@@ -85,6 +86,7 @@ fun SettingsScreen(
             }
             else if(mode == MODE_BAR_LOOP) {
                 NumSelector(
+                    label = "Loop bars",
                     viewModel.numBars,
                     { viewModel.setNumBars(it) },
                     { viewModel.storeNumBars() },

@@ -3,15 +3,19 @@ package com.pdp.gotronome.components
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,16 +36,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 @Composable
 fun NumSelector(
+    label: String,
     numProperty: StateFlow<Int>,
     propertySetter: (Int) -> Unit,
     propertyStorer: () -> Unit,
     minVal: Int,
-    maxVal: Int
+    maxVal: Int,
+    modifier: Modifier = Modifier,
 ) {
-    val _numProperty by numProperty.collectAsStateWithLifecycle()
+    val value by numProperty.collectAsStateWithLifecycle()
     val leftInteractionSource = remember { MutableInteractionSource() }
     val rightInteractionSource = remember { MutableInteractionSource() }
     val leftPressed by leftInteractionSource.collectIsPressedAsState()
@@ -49,95 +56,101 @@ fun NumSelector(
     val viewConfiguration = LocalViewConfiguration.current
     var leftLongPressed by remember { mutableStateOf(false) }
     var rightLongPressed by remember { mutableStateOf(false) }
-    var numPropertyChanged by remember { mutableStateOf(false) }
+    var valueChanged by remember { mutableStateOf(false) }
 
-    // Left Button Long Press Logic
+    // Long-press the down button to keep decreasing; persist once on release.
     LaunchedEffect(leftPressed) {
         if (leftPressed) {
-            numPropertyChanged = true
-            leftLongPressed = false // Reset long press state on new press
-            delay(viewConfiguration.longPressTimeoutMillis) // Initial delay
-            leftLongPressed = true // Mark as long press after initial delay
+            valueChanged = true
+            leftLongPressed = false
+            delay(viewConfiguration.longPressTimeoutMillis)
+            leftLongPressed = true
             while (leftPressed) {
-                // Continuous update while pressed
-                val value = max(minVal, _numProperty - 4) // Decrease by 4
-                propertySetter(value)
-                delay(50) // Adjust this delay to control update speed (e.g., 50ms)
+                propertySetter(max(minVal, value - 4))
+                delay(50)
             }
         } else {
-            leftLongPressed = false // Reset when released
-            if (numPropertyChanged) {
+            leftLongPressed = false
+            if (valueChanged) {
                 propertyStorer()
-                numPropertyChanged = false
+                valueChanged = false
             }
         }
     }
 
-    // Right Button Long Press Logic
+    // Long-press the up button to keep increasing; persist once on release.
     LaunchedEffect(rightPressed) {
         if (rightPressed) {
-            numPropertyChanged = true
-            rightLongPressed = false // Reset long press state on new press
-            delay(viewConfiguration.longPressTimeoutMillis) // Initial delay
-            rightLongPressed = true // Mark as long press after initial delay
+            valueChanged = true
+            rightLongPressed = false
+            delay(viewConfiguration.longPressTimeoutMillis)
+            rightLongPressed = true
             while (rightPressed) {
-                // Continuous update while pressed
-                val value = min(maxVal, _numProperty + 4) // Increase by 4
-                propertySetter(value)
-                delay(50) // Adjust this delay to control update speed (e.g., 50ms)
+                propertySetter(min(maxVal, value + 4))
+                delay(50)
             }
         } else {
-            rightLongPressed = false // Reset when released
-            if (numPropertyChanged) {
+            rightLongPressed = false
+            if (valueChanged) {
                 propertyStorer()
-                numPropertyChanged = false
+                valueChanged = false
             }
         }
     }
-    FlowRow(
-        modifier = Modifier.padding(all=8.dp),
-//        horizontalAlignment = Alignment.CenterHorizontally
-        verticalArrangement = Arrangement.Center
-    ){
-        Row (
-            verticalAlignment = Alignment.CenterVertically
-        ){
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(all = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.secondary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = value.toString(),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.secondary,
+                textAlign = TextAlign.Center,
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
             IconButton(
                 interactionSource = leftInteractionSource,
-                onClick = {
-                    if (!leftLongPressed) { // Only trigger single click if not a long press
-                        val value = max(minVal, _numProperty - 1)
-                        propertySetter(value)
-                    }
-                },
-                enabled = +_numProperty > minVal,
+                onClick = { if (!leftLongPressed) propertySetter(max(minVal, value - 1)) },
+                enabled = value > minVal,
             ) {
                 Icon(
-                    imageVector = Icons.Filled.KeyboardArrowDown, // More distinct icon
+                    imageVector = Icons.Filled.KeyboardArrowDown,
                     tint = MaterialTheme.colorScheme.secondary,
-                    contentDescription = "Decrease Num Bars"
+                    contentDescription = "Decrease $label",
                 )
             }
-            Text(
-                text = _numProperty.toString(),
-                style = MaterialTheme.typography.bodyLarge, // Larger, more prominent
-                color = MaterialTheme.colorScheme.secondary,
-                textAlign = TextAlign.Center
+            Slider(
+                value = value.toFloat(),
+                onValueChange = { propertySetter(it.roundToInt().coerceIn(minVal, maxVal)) },
+                onValueChangeFinished = { propertyStorer() },
+                valueRange = minVal.toFloat()..maxVal.toFloat(),
+                modifier = Modifier.weight(1f),
             )
             IconButton(
                 interactionSource = rightInteractionSource,
-                onClick = {
-                    if (!rightLongPressed) { // Only trigger single click if not a long press
-                        val value = min(maxVal, _numProperty + 1)
-                        propertySetter(value)
-                    }
-                },
-                enabled = _numProperty <= maxVal,
+                onClick = { if (!rightLongPressed) propertySetter(min(maxVal, value + 1)) },
+                enabled = value < maxVal,
             ) {
                 Icon(
-                    imageVector = Icons.Filled.KeyboardArrowUp, // More distinct icon
+                    imageVector = Icons.Filled.KeyboardArrowUp,
                     tint = MaterialTheme.colorScheme.secondary,
-                    contentDescription = "Increase Num Bars"
+                    contentDescription = "Increase $label",
                 )
             }
         }
@@ -149,10 +162,11 @@ fun NumSelector(
 fun NumSelectorPreview() {
     val viewModel = viewModel<MockMetronomeViewModel>()
     NumSelector(
+        label = "Loop bars",
         viewModel.numBars,
-        {viewModel.setNumBars(it)},
-        {viewModel.storeNumBars()},
+        { viewModel.setNumBars(it) },
+        { viewModel.storeNumBars() },
         2,
-        32
+        32,
     )
 }
