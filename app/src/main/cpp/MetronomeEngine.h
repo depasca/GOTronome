@@ -37,17 +37,19 @@ public:
 
 private:
     std::shared_ptr<oboe::AudioStream> stream;
-    jboolean isPlaying = false;
-    int beatsPerMinute;
+    std::atomic<bool> isPlaying{false};
+    int beatsPerMinute = 0;
     double sampleRate = 48000.0;
-    double samplesPerBeat = 0.0;
-    int currentBeat = 0;
+    double samplesPerBeat = 0.0;          // only written in start(), before the stream runs
+    std::atomic<int> currentBeat{0};      // read from the UI thread
     int currentMeasure = 0;
     int beatsPerMeasure = 4;
-    int silentMeasures = 0;
+    std::atomic<int> silentMeasures{0};   // written live from the JNI thread
     int silentMeasureCounter = 0;
-    bool silentMeasureEnabled = false;
-    bool isSilent = false;
+    std::atomic<bool> silentMeasureEnabled{false}; // written live from the JNI thread
+    std::atomic<bool> isSilent{false};    // read from the UI thread
+    double beatPhase = 0.0;               // audio thread only: samples until next beat
+    int samplesSinceBeat = 0;             // audio thread only: samples since last beat
     std::mutex mLock;
 
     JavaVM *javaVm = nullptr;

@@ -25,7 +25,14 @@ oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
     LOGD("MetronomeEngine::start");
     this->beatsPerMinute = _beatsPerMinute;
     this->beatsPerMeasure = _beatsPerMeasure;
-    samplesPerBeat = (sampleRate * 60.0) / beatsPerMinute;
+
+    // Reset the transport so the first beat fires immediately and in phase.
+    currentBeat.store(0, std::memory_order_relaxed);
+    currentMeasure = 0;
+    silentMeasureCounter = 0;
+    isSilent.store(false, std::memory_order_relaxed);
+    beatPhase = 0.0;
+    samplesSinceBeat = 0;
 
     oboe::Result result = oboe::Result::OK;
     int tryCount = 0;
@@ -36,6 +43,9 @@ oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
         result = createStream();
         if (result == oboe::Result::OK) {
             LOGD("MetronomeEngine::start stream created!");
+            // Base timing on the rate the stream was actually granted, not the request.
+            sampleRate = stream->getSampleRate();
+            samplesPerBeat = (sampleRate * 60.0) / beatsPerMinute;
             result = stream->start();
             if (result != oboe::Result::OK) {
                 LOGW("Error starting playback stream. Error: %s, attempt num %d",
@@ -87,6 +97,8 @@ oboe::Result  MetronomeEngine::stop() {
                 currentBeat = 0;
                 currentMeasure = 0;
                 silentMeasureCounter = 0;
+                beatPhase = 0.0;
+                samplesSinceBeat = 0;
             }
         }
     } while (result != oboe::Result::OK && tryCount++ < 3);
@@ -122,51 +134,55 @@ float envelope(float t, float duration) {
 }
 
 void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
-//    LOGD("MetronomeEngine::generateTick start, numFrames -> %d, currentBeat -> %d", numFrames, currentBeat);
     const float tickVolume = 0.3f;
     const float accentVolume = 0.5f;
     const int tickLength = static_cast<int>(sampleRate * 0.01); // 10ms tick
-    static int frameCounter = 0;
+    const double period = samplesPerBeat;
+    const bool silentEnabled = silentMeasureEnabled.load(std::memory_order_relaxed);
+    const int numSilent = silentMeasures.load(std::memory_order_relaxed);
 
     for (int i = 0; i < numFrames; ++i) {
-        // Trigger beat at start of each beat window
-        if ((frameCounter % static_cast<int>(samplesPerBeat)) == 0) {
-//            sendBeatToJava(currentBeat);
-            currentBeat += 1;
-            if (currentBeat > beatsPerMeasure){
-                currentBeat = 1;
+        // Fire a beat whenever a full (fractional) beat period has elapsed. The
+        // remainder carries into beatPhase, so timing never drifts.
+        if (beatPhase <= 0.0) {
+            beatPhase += period;
+            samplesSinceBeat = 0;
+
+            int beat = currentBeat.load(std::memory_order_relaxed) + 1;
+            if (beat > beatsPerMeasure) {
+                beat = 1;
                 currentMeasure++;
-                if(silentMeasureEnabled) {
-                    if (isSilent) {
-                        silentMeasureCounter++;
-                        if (silentMeasureCounter >= silentMeasures) {
-                            isSilent = false;
+                if (silentEnabled) {
+                    if (isSilent.load(std::memory_order_relaxed)) {
+                        if (++silentMeasureCounter >= numSilent) {
+                            isSilent.store(false, std::memory_order_relaxed);
                             silentMeasureCounter = 0;
                         }
-                    } else if (silentMeasures > 0) {
-                        isSilent = true;
+                    } else if (numSilent > 0) {
+                        isSilent.store(true, std::memory_order_relaxed);
                     }
                 }
             }
+            currentBeat.store(beat, std::memory_order_relaxed);
         }
 
-        int beatOffset = frameCounter % static_cast<int>(samplesPerBeat);
-        bool isTick = beatOffset < tickLength;
-
-        float freq = (currentBeat == 1) ? 1760.0f : 880.0f;
-        float volume = (currentBeat == 1) ? accentVolume : tickVolume;
-        if(isSilent){
+        const int beat = currentBeat.load(std::memory_order_relaxed);
+        const bool isTick = samplesSinceBeat < tickLength;
+        const float freq = (beat == 1) ? 1760.0f : 880.0f;
+        float volume = (beat == 1) ? accentVolume : tickVolume;
+        if (isSilent.load(std::memory_order_relaxed)) {
             volume = 0.0f;
         }
         if (isTick) {
-            float t = static_cast<float>(beatOffset) / sampleRate;
-            float env = envelope(t, tickLength / sampleRate);
+            const float t = static_cast<float>(samplesSinceBeat) / sampleRate;
+            const float env = envelope(t, tickLength / sampleRate);
             buffer[i] = volume * env * sinf(2.0f * M_PI * freq * t);
         } else {
             buffer[i] = 0.0f;
         }
 
-        frameCounter++;
+        beatPhase -= 1.0;
+        samplesSinceBeat++;
     }
 }
 
@@ -221,7 +237,8 @@ void MetronomeEngine::sendBeatToJava(int beat) {
 
 void MetronomeEngine::setNumSilentMeasures(int val) {
     silentMeasures = val;
-    LOGD("MetronomeEngine::setNumSilentMeasures -> %d, isSilent -> %d", silentMeasures, isSilent);
+    LOGD("MetronomeEngine::setNumSilentMeasures -> %d, isSilent -> %d",
+         silentMeasures.load(), isSilent.load());
 }
 
 void MetronomeEngine::setSilentMeasuresEnabled(bool b) {
