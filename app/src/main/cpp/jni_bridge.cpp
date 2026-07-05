@@ -28,6 +28,10 @@ void setNumSilentMeasures(JNIEnv* env, jobject thiz, int numSilentMeasures) {
     engine.setNumSilentMeasures(numSilentMeasures);
 }
 
+void setCountInEnabled(JNIEnv* env, jobject thiz, bool val) {
+    engine.setCountInEnabled(val);
+}
+
 extern "C" JNICALL
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
     JNIEnv* env;
@@ -54,6 +58,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
             {"getPlayingState", "()I", reinterpret_cast<void*>(getPlayingState)},
             {"setNumSilentMeasures", "(I)V", reinterpret_cast<void*>(setNumSilentMeasures)},
             {"setSilentMeasuresEnabled", "(Z)V", reinterpret_cast<void*>(setSilentMeasuresEnabled)},
+            {"setCountInEnabled", "(Z)V", reinterpret_cast<void*>(setCountInEnabled)},
     };
     int rc = env->RegisterNatives(c, methods, sizeof(methods)/sizeof(JNINativeMethod));
     if (rc != JNI_OK) return rc;

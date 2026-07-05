@@ -59,7 +59,7 @@ fun SettingsScreen(
             contentAlignment = Alignment.Center
 
         ) {
-            AppMenu({ viewModel.setPage("info") })
+            AppMenu({ viewModel.setPage(it) })
             Image(
                 imageVector = ImageVector.vectorResource(R.drawable.gotronome_banner),
                 contentDescription = "GOTronome banner"

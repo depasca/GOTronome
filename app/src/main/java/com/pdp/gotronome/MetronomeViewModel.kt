@@ -25,6 +25,7 @@ private const val TAG = "GOT-Settings"
 const val PLAYING_STATE_PLAYING = 1
 const val PLAYING_STATE_STOPPED = 0
 const val PLAYING_STATE_SILENT = 2
+const val PLAYING_STATE_COUNT_IN = 3
 
 open class MetronomeViewModel(
     private val userPreferencesRepository: UserPreferencesRepository?,
@@ -63,6 +64,9 @@ open class MetronomeViewModel(
 
     private val _numSilentMeasures = MutableStateFlow<Int>(0)
     open val numSilentMeasures: StateFlow<Int> = _numSilentMeasures
+
+    private val _countInEnabled = MutableStateFlow<Boolean>(true)
+    open val countInEnabled: StateFlow<Boolean> = _countInEnabled
 
     init {
         initialize()
@@ -103,6 +107,11 @@ open class MetronomeViewModel(
             metronome.setNumSilentMeasures(initialNumSilentMeasures)
             Log.d(TAG, "Init -> Num silent measures: $initialNumSilentMeasures")
 
+            val initialCountInEnabled = userPreferencesRepository.countInEnabledFlow.first()
+            _countInEnabled.value = initialCountInEnabled
+            metronome.setCountInEnabled(initialCountInEnabled)
+            Log.d(TAG, "Init -> Count-in enabled: $initialCountInEnabled")
+
             val initialMode = userPreferencesRepository.modeFlow.first()
             setMode(initialMode)
             Log.d(TAG, "Init -> Mode: $initialMode")
@@ -135,7 +144,8 @@ open class MetronomeViewModel(
     open fun getCurrentBeat(): Int {
         val prevBeat = _currentBeat.value
         _currentBeat.value = metronome!!.getCurrentBeat()
-        if(prevBeat != _currentBeat.value && _currentBeat.value == 1) {
+        val countingIn = metronome.getPlayingState() == PLAYING_STATE_COUNT_IN
+        if(!countingIn && prevBeat != _currentBeat.value && _currentBeat.value == 1) {
             _currentBar.value++
             if(_currentBar.value > _numBars.value) {
                 _currentBar.value = 1
@@ -252,6 +262,14 @@ open class MetronomeViewModel(
         metronome!!.setNumSilentMeasures(_numSilentMeasures.value)
         viewModelScope.launch {
             userPreferencesRepository!!.setNumSilentBars(_numSilentMeasures.value)
+        }
+    }
+
+    open fun setCountInEnabled(value: Boolean) {
+        _countInEnabled.value = value
+        metronome!!.setCountInEnabled(value)
+        viewModelScope.launch {
+            userPreferencesRepository!!.setCountInEnabled(value)
         }
     }
 }

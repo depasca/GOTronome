@@ -35,6 +35,8 @@ public:
 
     void setSilentMeasuresEnabled(bool b);
 
+    void setCountInEnabled(bool b);
+
 private:
     std::shared_ptr<oboe::AudioStream> stream;
     std::atomic<bool> isPlaying{false};
@@ -48,6 +50,10 @@ private:
     int silentMeasureCounter = 0;
     std::atomic<bool> silentMeasureEnabled{false}; // written live from the JNI thread
     std::atomic<bool> isSilent{false};    // read from the UI thread
+    std::atomic<bool> countInEnabled{true}; // written from the JNI thread
+    std::atomic<bool> isCountingIn{false}; // read from the UI thread
+    int countInBeats = 0;                 // audio thread only: beats in the lead-in bar
+    int countInBeat = 0;                  // audio thread only: current lead-in beat 1..N
     double beatPhase = 0.0;               // audio thread only: samples until next beat
     int samplesSinceBeat = 0;             // audio thread only: samples since last beat
     std::mutex mLock;

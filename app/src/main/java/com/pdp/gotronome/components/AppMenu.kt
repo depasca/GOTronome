@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -38,9 +39,14 @@ fun AppMenu(
             onDismissRequest = { expanded = false },
         ) {
             DropdownMenuItem(
+                text = { Text("Settings") },
+                leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+                onClick = { expanded = false; handleClick("preferences") }
+            )
+            DropdownMenuItem(
                 text = { Text("About") },
                 leadingIcon = { Icon(Icons.Outlined.Info, contentDescription = null) },
-                onClick = { expanded = false; handleClick("about") }
+                onClick = { expanded = false; handleClick("info") }
             )
 //            DropdownMenuItem(
 //                text = { Text("Send Feedback") },

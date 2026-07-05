@@ -45,6 +45,7 @@ import androidx.window.layout.WindowMetricsCalculator
 import com.google.android.play.core.review.ReviewException
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.android.play.core.review.model.ReviewErrorCode
+import com.pdp.gotronome.components.CountInView
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-Settings"
@@ -148,7 +149,7 @@ fun MetronomeScreen(
                                     if (playingState != PLAYING_STATE_STOPPED) {
                                         viewModel.stop(); Log.d(TAG, "Metronome stopped")
                                         viewModel.incrementNumRuns()
-                                    } else if(viewModel.page.value != "info") {
+                                    } else if(viewModel.page.value == "settings") {
                                         viewModel.start(); Log.d(TAG, "Metronome started")
                                     }
                                 },
@@ -169,13 +170,20 @@ fun MetronomeScreen(
                                 Row (
                                     modifier = Modifier.weight(4f),
                                     ) {
-                                    for (i in 1..beatsPerMeasure) {
-                                        BeatView(
-                                            number = i,
-                                            beatNumber = currentBeat,
-                                            beatsPerMeasure = beatsPerMeasure,
-                                            modifier = Modifier.weight(1f)
+                                    if (playingState == PLAYING_STATE_COUNT_IN) {
+                                        CountInView(
+                                            count = currentBeat,
+                                            beatsPerMeasure = beatsPerMeasure
                                         )
+                                    } else {
+                                        for (i in 1..beatsPerMeasure) {
+                                            BeatView(
+                                                number = i,
+                                                beatNumber = currentBeat,
+                                                beatsPerMeasure = beatsPerMeasure,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
                                     }
                                 }
                                 if (showBars) {
@@ -219,6 +227,8 @@ fun MetronomeScreen(
                                     viewModel.setPage("settings")
                                 })
 
+                                "preferences" -> PreferencesScreen(viewModel = viewModel)
+
                                 else ->
                                     SettingsScreen(viewModel = viewModel)
                             }
@@ -234,7 +244,7 @@ fun MetronomeScreen(
                                     if (playingState != PLAYING_STATE_STOPPED) {
                                         viewModel.stop(); Log.d(TAG, "Metronome stopped")
                                         viewModel.incrementNumRuns()
-                                    } else if(viewModel.page.value != "info") {
+                                    } else if(viewModel.page.value == "settings") {
                                         viewModel.start(); Log.d(TAG, "Metronome started")
                                     }
                                 },
@@ -257,13 +267,20 @@ fun MetronomeScreen(
                                     modifier = Modifier.weight(4f),
                                 )
                                 {
-                                    for (i in 1..beatsPerMeasure) {
-                                        BeatView(
-                                            number = i,
-                                            beatNumber = currentBeat,
-                                            beatsPerMeasure = beatsPerMeasure,
-                                            modifier = Modifier.weight(1f)
+                                    if (playingState == PLAYING_STATE_COUNT_IN) {
+                                        CountInView(
+                                            count = currentBeat,
+                                            beatsPerMeasure = beatsPerMeasure
                                         )
+                                    } else {
+                                        for (i in 1..beatsPerMeasure) {
+                                            BeatView(
+                                                number = i,
+                                                beatNumber = currentBeat,
+                                                beatsPerMeasure = beatsPerMeasure,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
                                     }
                                 }
                                 if (showBars) {
@@ -306,6 +323,8 @@ fun MetronomeScreen(
                                 "info" -> InfoScreen(handleClick = {
                                     viewModel.setPage("settings")
                                 })
+
+                                "preferences" -> PreferencesScreen(viewModel = viewModel)
 
                                 else ->
                                     SettingsScreen(viewModel = viewModel)

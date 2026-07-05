@@ -6,6 +6,7 @@
 const int PLAYING_STATE_PLAYING = 1;
 const int PLAYING_STATE_STOPPED = 0;
 const int PLAYING_STATE_SILENT = 2;
+const int PLAYING_STATE_COUNT_IN = 3;
 
 MetronomeEngine::MetronomeEngine() {
     isPlaying = false;
@@ -33,6 +34,11 @@ oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
     isSilent.store(false, std::memory_order_relaxed);
     beatPhase = 0.0;
     samplesSinceBeat = 0;
+
+    // Arm a one-bar count-in lead-in before the song proper.
+    isCountingIn = countInEnabled.load(std::memory_order_relaxed);
+    countInBeats = beatsPerMeasure;
+    countInBeat = 0;
 
     oboe::Result result = oboe::Result::OK;
     int tryCount = 0;
@@ -97,6 +103,8 @@ oboe::Result  MetronomeEngine::stop() {
                 currentBeat = 0;
                 currentMeasure = 0;
                 silentMeasureCounter = 0;
+                isCountingIn = false;
+                countInBeat = 0;
                 beatPhase = 0.0;
                 samplesSinceBeat = 0;
             }
@@ -148,22 +156,37 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
             beatPhase += period;
             samplesSinceBeat = 0;
 
-            int beat = currentBeat.load(std::memory_order_relaxed) + 1;
-            if (beat > beatsPerMeasure) {
-                beat = 1;
-                currentMeasure++;
-                if (silentEnabled) {
-                    if (isSilent.load(std::memory_order_relaxed)) {
-                        if (++silentMeasureCounter >= numSilent) {
-                            isSilent.store(false, std::memory_order_relaxed);
-                            silentMeasureCounter = 0;
+            if (isCountingIn.load(std::memory_order_relaxed)) {
+                if (countInBeat >= countInBeats) {
+                    // Lead-in complete: begin the song on this beat as a fresh
+                    // downbeat so measure/silent/bar logic starts aligned.
+                    isCountingIn.store(false, std::memory_order_relaxed);
+                    currentBeat.store(1, std::memory_order_relaxed);
+                    currentMeasure = 0;
+                    isSilent.store(false, std::memory_order_relaxed);
+                    silentMeasureCounter = 0;
+                } else {
+                    // Count 1..N without advancing the song.
+                    currentBeat.store(++countInBeat, std::memory_order_relaxed);
+                }
+            } else {
+                int beat = currentBeat.load(std::memory_order_relaxed) + 1;
+                if (beat > beatsPerMeasure) {
+                    beat = 1;
+                    currentMeasure++;
+                    if (silentEnabled) {
+                        if (isSilent.load(std::memory_order_relaxed)) {
+                            if (++silentMeasureCounter >= numSilent) {
+                                isSilent.store(false, std::memory_order_relaxed);
+                                silentMeasureCounter = 0;
+                            }
+                        } else if (numSilent > 0) {
+                            isSilent.store(true, std::memory_order_relaxed);
                         }
-                    } else if (numSilent > 0) {
-                        isSilent.store(true, std::memory_order_relaxed);
                     }
                 }
+                currentBeat.store(beat, std::memory_order_relaxed);
             }
-            currentBeat.store(beat, std::memory_order_relaxed);
         }
 
         const int beat = currentBeat.load(std::memory_order_relaxed);
@@ -196,6 +219,7 @@ int MetronomeEngine::getCurrentBeat() const {
 
 int MetronomeEngine::getPlayingState() {
     if(isPlaying){
+        if (isCountingIn.load(std::memory_order_relaxed)) return PLAYING_STATE_COUNT_IN;
         return isSilent ? PLAYING_STATE_SILENT : PLAYING_STATE_PLAYING;
     }
     return PLAYING_STATE_STOPPED;
@@ -243,5 +267,9 @@ void MetronomeEngine::setNumSilentMeasures(int val) {
 
 void MetronomeEngine::setSilentMeasuresEnabled(bool b) {
     silentMeasureEnabled = b;
+}
+
+void MetronomeEngine::setCountInEnabled(bool b) {
+    countInEnabled = b;
 }
 
