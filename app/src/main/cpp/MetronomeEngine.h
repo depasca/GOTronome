@@ -16,6 +16,8 @@
 
 class MetronomeEngine : public oboe::AudioStreamCallback {
 public:
+    static const int MAX_BEATS = 16;
+
     MetronomeEngine();
     ~MetronomeEngine() override;
     void setJavaVM(JavaVM *vm, jobject callbackObject);
@@ -41,6 +43,8 @@ public:
 
     void setCountInEnabled(bool b);
 
+    void setAccentPattern(const int *pattern, int count);
+
 private:
     std::shared_ptr<oboe::AudioStream> stream;
     std::atomic<bool> isPlaying{false};
@@ -60,6 +64,8 @@ private:
     int countInBeat = 0;                  // audio thread only: current lead-in beat 1..N
     double beatPhase = 0.0;               // audio thread only: samples until next beat
     int samplesSinceBeat = 0;             // audio thread only: samples since last beat
+    // Per-beat level: 2 = accent, 1 = normal, 0 = mute. Written from the JNI thread.
+    std::atomic<int> accentPattern[MAX_BEATS];
     std::mutex mLock;
 
     JavaVM *javaVm = nullptr;

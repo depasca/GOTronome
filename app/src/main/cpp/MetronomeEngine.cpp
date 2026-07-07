@@ -15,6 +15,10 @@ MetronomeEngine::MetronomeEngine() {
     silentMeasureCounter = 0;
     isSilent = false;
     silentMeasures = 0;
+    // Default: accent beat 1, every other beat normal.
+    for (int i = 0; i < MAX_BEATS; ++i) {
+        accentPattern[i].store(i == 0 ? 2 : 1, std::memory_order_relaxed);
+    }
 }
 
 MetronomeEngine::~MetronomeEngine() {
@@ -212,8 +216,20 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
 
         const int beat = currentBeat.load(std::memory_order_relaxed);
         const bool isTick = samplesSinceBeat < tickLength;
-        const float freq = (beat == 1) ? 1760.0f : 880.0f;
-        float volume = (beat == 1) ? accentVolume : tickVolume;
+
+        // Per-beat level: 2 = accent, 1 = normal, 0 = mute. The count-in uses a
+        // steady accent-on-1 and ignores the pattern.
+        int level;
+        if (isCountingIn.load(std::memory_order_relaxed)) {
+            level = (beat == 1) ? 2 : 1;
+        } else if (beat >= 1 && beat <= MAX_BEATS) {
+            level = accentPattern[beat - 1].load(std::memory_order_relaxed);
+        } else {
+            level = 1;
+        }
+
+        const float freq = (level == 2) ? 1760.0f : 880.0f;
+        float volume = (level == 2) ? accentVolume : (level == 0 ? 0.0f : tickVolume);
         if (isSilent.load(std::memory_order_relaxed)) {
             volume = 0.0f;
         }
@@ -292,5 +308,11 @@ void MetronomeEngine::setSilentMeasuresEnabled(bool b) {
 
 void MetronomeEngine::setCountInEnabled(bool b) {
     countInEnabled = b;
+}
+
+void MetronomeEngine::setAccentPattern(const int *pattern, int count) {
+    for (int i = 0; i < MAX_BEATS; ++i) {
+        accentPattern[i].store(i < count ? pattern[i] : 1, std::memory_order_relaxed);
+    }
 }
 

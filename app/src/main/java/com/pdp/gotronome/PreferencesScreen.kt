@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pdp.gotronome.components.BeatPatternEditor
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 @Composable
@@ -58,6 +59,8 @@ fun PreferencesScreen(
             checked = countInEnabled,
             onCheckedChange = { viewModel.setCountInEnabled(it) },
         )
+        Spacer(modifier = Modifier.height(24.dp))
+        BeatPatternEditor(viewModel = viewModel)
     }
 }
 

@@ -4,16 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.pdp.gotronome.data.FOURFOURS
 import com.pdp.gotronome.data.MODE_BAR_LOOP
 import com.pdp.gotronome.data.MODE_BASIC
 import com.pdp.gotronome.data.MODE_SILENT_BARS
-import com.pdp.gotronome.data.SIXEIGHTS
-import com.pdp.gotronome.data.THREEFOURS
-import com.pdp.gotronome.data.TWOFOURS
-import com.pdp.gotronome.data.TWOTWOS
 import com.pdp.gotronome.data.UserPreferencesRepository
+import com.pdp.gotronome.data.beatsForTimeSignature
 import com.pdp.gotronome.data.counterSequence
+import com.pdp.gotronome.data.defaultAccentPattern
 import com.pdp.gotronome.data.modes
 import com.pdp.gotronome.data.timeSignatures
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,6 +65,9 @@ open class MetronomeViewModel(
     private val _countInEnabled = MutableStateFlow<Boolean>(true)
     open val countInEnabled: StateFlow<Boolean> = _countInEnabled
 
+    private val _accentPattern = MutableStateFlow<List<Int>>(defaultAccentPattern(timeSignatures.first()))
+    open val accentPattern: StateFlow<List<Int>> = _accentPattern
+
     init {
         initialize()
     }
@@ -111,6 +111,12 @@ open class MetronomeViewModel(
             _countInEnabled.value = initialCountInEnabled
             metronome.setCountInEnabled(initialCountInEnabled)
             Log.d(TAG, "Init -> Count-in enabled: $initialCountInEnabled")
+
+            val initialAccentPattern =
+                userPreferencesRepository.accentPatternFlow(_timeSignature.value).first()
+            _accentPattern.value = initialAccentPattern
+            metronome.setAccentPattern(initialAccentPattern.toIntArray())
+            Log.d(TAG, "Init -> Accent pattern: $initialAccentPattern")
 
             val initialMode = userPreferencesRepository.modeFlow.first()
             setMode(initialMode)
@@ -165,18 +171,16 @@ open class MetronomeViewModel(
         viewModelScope.launch {
             Log.d(TAG, "Setting beats per measure to: ${_beatsPerMeasure.value}")
             userPreferencesRepository!!.setTimeSignature(_timeSignature.value)
+
+            // Load the accent pattern saved for this meter (default: accent on 1).
+            val pattern = userPreferencesRepository.accentPatternFlow(_timeSignature.value).first()
+            _accentPattern.value = pattern
+            metronome?.setAccentPattern(pattern.toIntArray())
         }
     }
 
     fun updateBeatsPerMeasure() {
-        _beatsPerMeasure.value = when (_timeSignature.value) {
-            FOURFOURS -> 4
-            THREEFOURS -> 3
-            TWOFOURS -> 2
-            TWOTWOS -> 2
-            SIXEIGHTS -> 6
-            else -> 4
-        }
+        _beatsPerMeasure.value = beatsForTimeSignature(_timeSignature.value)
     }
 
     open fun setMode(mode: String) {
@@ -270,6 +274,18 @@ open class MetronomeViewModel(
         metronome!!.setCountInEnabled(value)
         viewModelScope.launch {
             userPreferencesRepository!!.setCountInEnabled(value)
+        }
+    }
+
+    // Cycle a beat's accent level: accent -> normal -> mute -> accent.
+    open fun cycleAccentBeat(index: Int) {
+        val current = _accentPattern.value
+        if (index !in current.indices) return
+        val updated = current.toMutableList().also { it[index] = (it[index] + 2) % 3 }
+        _accentPattern.value = updated
+        metronome!!.setAccentPattern(updated.toIntArray())
+        viewModelScope.launch {
+            userPreferencesRepository!!.setAccentPattern(_timeSignature.value, updated)
         }
     }
 }

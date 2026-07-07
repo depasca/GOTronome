@@ -40,6 +40,27 @@ const val MODE_SILENT_BARS = "Silent bars"
 const val MODE_BAR_LOOP = "Bar loop"
 val modes = listOf(MODE_BASIC, MODE_SILENT_BARS, MODE_BAR_LOOP)
 
+const val BEAT_MUTE = 0
+const val BEAT_NORMAL = 1
+const val BEAT_ACCENT = 2
+
+fun beatsForTimeSignature(timeSignature: String): Int = when (timeSignature) {
+    FOURFOURS -> 4
+    THREEFOURS -> 3
+    TWOFOURS -> 2
+    TWOTWOS -> 2
+    SIXEIGHTS -> 6
+    else -> 4
+}
+
+fun defaultAccentPattern(timeSignature: String): List<Int> {
+    val beats = beatsForTimeSignature(timeSignature)
+    return List(beats) { if (it == 0) BEAT_ACCENT else BEAT_NORMAL }
+}
+
+private fun accentPatternKey(timeSignature: String) =
+    stringPreferencesKey("accent_pattern_$timeSignature")
+
 class UserPreferencesRepository (
     private val context: Context
 ) {
@@ -87,6 +108,14 @@ class UserPreferencesRepository (
     val countInEnabledFlow: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[COUNT_IN_ENABLED] ?: true
+        }
+
+    fun accentPatternFlow(timeSignature: String): Flow<List<Int>> = context.dataStore.data
+        .map { preferences ->
+            val stored = preferences[accentPatternKey(timeSignature)]
+            val parsed = stored?.split(",")?.mapNotNull { it.trim().toIntOrNull() }
+            if (parsed != null && parsed.size == beatsForTimeSignature(timeSignature)) parsed
+            else defaultAccentPattern(timeSignature)
         }
 
     suspend fun incrementNumRuns() {
@@ -153,6 +182,12 @@ class UserPreferencesRepository (
     suspend fun setCountInEnabled(value: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[COUNT_IN_ENABLED] = value
+        }
+    }
+
+    suspend fun setAccentPattern(timeSignature: String, pattern: List<Int>) {
+        context.dataStore.edit { preferences ->
+            preferences[accentPatternKey(timeSignature)] = pattern.joinToString(",")
         }
     }
 

@@ -31,4 +31,5 @@ open class Metronome {
     open external fun setSilentMeasuresEnabled(enabled: Boolean)
     open external fun setNumSilentMeasures(numSilentMeasures: Int)
     open external fun setCountInEnabled(enabled: Boolean)
+    open external fun setAccentPattern(pattern: IntArray)
 }

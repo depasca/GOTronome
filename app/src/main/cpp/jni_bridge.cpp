@@ -32,6 +32,13 @@ void setCountInEnabled(JNIEnv* env, jobject thiz, bool val) {
     engine.setCountInEnabled(val);
 }
 
+void setAccentPattern(JNIEnv* env, jobject thiz, jintArray pattern) {
+    jsize len = env->GetArrayLength(pattern);
+    jint* elems = env->GetIntArrayElements(pattern, nullptr);
+    engine.setAccentPattern(elems, static_cast<int>(len));
+    env->ReleaseIntArrayElements(pattern, elems, JNI_ABORT);
+}
+
 extern "C" JNICALL
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
     JNIEnv* env;
@@ -59,6 +66,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
             {"setNumSilentMeasures", "(I)V", reinterpret_cast<void*>(setNumSilentMeasures)},
             {"setSilentMeasuresEnabled", "(Z)V", reinterpret_cast<void*>(setSilentMeasuresEnabled)},
             {"setCountInEnabled", "(Z)V", reinterpret_cast<void*>(setCountInEnabled)},
+            {"setAccentPattern", "([I)V", reinterpret_cast<void*>(setAccentPattern)},
     };
     int rc = env->RegisterNatives(c, methods, sizeof(methods)/sizeof(JNINativeMethod));
     if (rc != JNI_OK) return rc;
