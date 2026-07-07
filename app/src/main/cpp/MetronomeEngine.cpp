@@ -40,6 +40,12 @@ oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
     countInBeats = beatsPerMeasure;
     countInBeat = 0;
 
+    oboe::Result result = startStream();
+    isPlaying = (result == oboe::Result::OK);
+    return result;
+}
+
+oboe::Result MetronomeEngine::startStream() {
     oboe::Result result = oboe::Result::OK;
     int tryCount = 0;
     do {
@@ -48,8 +54,9 @@ oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
         }
         result = createStream();
         if (result == oboe::Result::OK) {
-            LOGD("MetronomeEngine::start stream created!");
-            // Base timing on the rate the stream was actually granted, not the request.
+            LOGD("MetronomeEngine::startStream stream created!");
+            // Base timing on the rate the stream was actually granted, not the
+            // request (a Bluetooth device may run at a different rate).
             sampleRate = stream->getSampleRate();
             samplesPerBeat = (sampleRate * 60.0) / beatsPerMinute;
             result = stream->start();
@@ -60,7 +67,7 @@ oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
                 stream.reset();
             }
             else {
-                LOGD("MetronomeEngine::start stream started!");
+                LOGD("MetronomeEngine::startStream stream started!");
             }
         }
         else{
@@ -72,12 +79,26 @@ oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
     if (result != oboe::Result::OK) {
         LOGE("Error creating playback stream. Error: %s",
              oboe::convertToText(result));
-        isPlaying = false;
-    }
-    else {
-        isPlaying = true;
     }
     return result;
+}
+
+void MetronomeEngine::onErrorAfterClose(oboe::AudioStream * /*oboeStream*/, oboe::Result error) {
+    LOGW("MetronomeEngine::onErrorAfterClose -> %s", oboe::convertToText(error));
+    // Ignore if the user has stopped; only recover from an unexpected disconnect.
+    if (!isPlaying.load(std::memory_order_relaxed)) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(mLock);
+    // Oboe has already closed the stream. Rebuild on the now-current output
+    // device without touching the transport, so the click continues in place.
+    stream.reset();
+    oboe::Result result = startStream();
+    if (result != oboe::Result::OK) {
+        LOGE("MetronomeEngine::onErrorAfterClose failed to restart: %s",
+             oboe::convertToText(result));
+        isPlaying = false;
+    }
 }
 
 oboe::Result  MetronomeEngine::stop() {

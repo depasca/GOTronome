@@ -30,6 +30,10 @@ public:
                                           void *audioData,
                                           int32_t numFrames) override;
 
+    // Called by Oboe when the stream is disconnected (e.g. Bluetooth or wired
+    // headphones connect/disconnect mid-session); we rebuild on the new device.
+    void onErrorAfterClose(oboe::AudioStream *oboeStream, oboe::Result error) override;
+
     int getPlayingState();
     void setNumSilentMeasures(int numSilentMeasures);
 
@@ -63,6 +67,7 @@ private:
     jmethodID onBeatMethod = nullptr;
 
     oboe::Result createStream();
+    oboe::Result startStream(); // open + start with retries; assumes mLock held
     void generateTick(float *buffer, int32_t numFrames);
     void sendBeatToJava(int beat);
 
