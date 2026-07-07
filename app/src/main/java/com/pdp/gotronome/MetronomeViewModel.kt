@@ -62,9 +62,6 @@ open class MetronomeViewModel(
     private val _numSilentMeasures = MutableStateFlow<Int>(0)
     open val numSilentMeasures: StateFlow<Int> = _numSilentMeasures
 
-    private val _countInEnabled = MutableStateFlow<Boolean>(true)
-    open val countInEnabled: StateFlow<Boolean> = _countInEnabled
-
     private val _accentPattern = MutableStateFlow<List<Int>>(defaultAccentPattern(timeSignatures.first()))
     open val accentPattern: StateFlow<List<Int>> = _accentPattern
 
@@ -107,10 +104,8 @@ open class MetronomeViewModel(
             metronome.setNumSilentMeasures(initialNumSilentMeasures)
             Log.d(TAG, "Init -> Num silent measures: $initialNumSilentMeasures")
 
-            val initialCountInEnabled = userPreferencesRepository.countInEnabledFlow.first()
-            _countInEnabled.value = initialCountInEnabled
-            metronome.setCountInEnabled(initialCountInEnabled)
-            Log.d(TAG, "Init -> Count-in enabled: $initialCountInEnabled")
+            // Count-in is always on (no user toggle), matching the iOS app.
+            metronome.setCountInEnabled(true)
 
             val initialAccentPattern =
                 userPreferencesRepository.accentPatternFlow(_timeSignature.value).first()
@@ -266,14 +261,6 @@ open class MetronomeViewModel(
         metronome!!.setNumSilentMeasures(_numSilentMeasures.value)
         viewModelScope.launch {
             userPreferencesRepository!!.setNumSilentBars(_numSilentMeasures.value)
-        }
-    }
-
-    open fun setCountInEnabled(value: Boolean) {
-        _countInEnabled.value = value
-        metronome!!.setCountInEnabled(value)
-        viewModelScope.launch {
-            userPreferencesRepository!!.setCountInEnabled(value)
         }
     }
 

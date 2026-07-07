@@ -25,7 +25,6 @@ val SHOW_BARS = booleanPreferencesKey("show_bars")
 val NUM_BARS = intPreferencesKey("num_bars")
 val NUM_SILENT_MEASURES = intPreferencesKey("num_silent_measures")
 val MODE = stringPreferencesKey("mode")
-val COUNT_IN_ENABLED = booleanPreferencesKey("count_in_enabled")
 val counterSequence = sequenceOf(5, 8, 13, 21)
 
 const val FOURFOURS = "4/4"
@@ -105,11 +104,6 @@ class UserPreferencesRepository (
             preferences[NUM_BARS] ?: 4
         }
 
-    val countInEnabledFlow: Flow<Boolean> = context.dataStore.data
-        .map { preferences ->
-            preferences[COUNT_IN_ENABLED] ?: true
-        }
-
     fun accentPatternFlow(timeSignature: String): Flow<List<Int>> = context.dataStore.data
         .map { preferences ->
             val stored = preferences[accentPatternKey(timeSignature)]
@@ -176,12 +170,6 @@ class UserPreferencesRepository (
     suspend fun setMode(value: String) {
         context.dataStore.edit { preferences ->
             preferences[MODE] = value
-        }
-    }
-
-    suspend fun setCountInEnabled(value: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[COUNT_IN_ENABLED] = value
         }
     }
 

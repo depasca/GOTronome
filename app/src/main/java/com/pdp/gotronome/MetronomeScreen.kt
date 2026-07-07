@@ -227,8 +227,6 @@ fun MetronomeScreen(
                                     viewModel.setPage("settings")
                                 })
 
-                                "preferences" -> PreferencesScreen(viewModel = viewModel)
-
                                 else ->
                                     SettingsScreen(viewModel = viewModel)
                             }
@@ -323,8 +321,6 @@ fun MetronomeScreen(
                                 "info" -> InfoScreen(handleClick = {
                                     viewModel.setPage("settings")
                                 })
-
-                                "preferences" -> PreferencesScreen(viewModel = viewModel)
 
                                 else ->
                                     SettingsScreen(viewModel = viewModel)
