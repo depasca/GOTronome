@@ -42,11 +42,12 @@ private fun levelFraction(level: Int): Float = when (level) {
 @Composable
 fun BeatPatternEditor(
     viewModel: MetronomeViewModel,
+    modifier: Modifier = Modifier,
 ) {
     val pattern by viewModel.accentPattern.collectAsStateWithLifecycle()
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

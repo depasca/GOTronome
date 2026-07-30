@@ -228,7 +228,7 @@ fun MetronomeScreen(
                                 })
 
                                 else ->
-                                    SettingsScreen(viewModel = viewModel)
+                                    SettingsScreen(viewModel = viewModel, isLandscape = true)
                             }
                         }
                     }

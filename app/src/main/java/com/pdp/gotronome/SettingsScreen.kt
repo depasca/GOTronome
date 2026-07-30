@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,20 +42,16 @@ private const val TAG = "GOT-SettingsScreen"
 
 @Composable
 fun SettingsScreen(
-    viewModel: MetronomeViewModel
-    ) {
-    val scrollState = rememberScrollState()
-    val mode by viewModel.mode.collectAsStateWithLifecycle()
-
+    viewModel: MetronomeViewModel,
+    isLandscape: Boolean = false,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
             .padding(top = 0.dp, bottom = 0.dp, start = 8.dp, end = 8.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
     ) {
-        Spacer(modifier = Modifier.weight(0.1f))
         Box(
             modifier = Modifier.fillMaxWidth()
                 .background(MaterialTheme.colorScheme.primary)
@@ -67,46 +65,76 @@ fun SettingsScreen(
                 contentDescription = "GOTronome banner"
             )
         }
-        Spacer(modifier = Modifier.weight(0.1f))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        FlowRow(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.Center,
-            verticalArrangement = Arrangement.Top,
-        ) {
-            ModeToggle(viewModel)
-            BasicSettingsCard(viewModel = viewModel)
-            if (mode == MODE_SILENT_BARS) {
-                NumSelector(
-                    label = "Silent bars",
-                    viewModel.numSilentMeasures,
-                    { viewModel.setNumSilentMeasures(it) },
-                    { viewModel.storeNumSilentMeasures() },
-                    1,
-                    10
+        if (isLandscape) {
+            Row(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SettingsControls(
+                    viewModel = viewModel,
+                    modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
+                )
+                BeatPatternEditor(
+                    viewModel = viewModel,
+                    modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
                 )
             }
-            else if(mode == MODE_BAR_LOOP) {
-                NumSelector(
-                    label = "Loop bars",
-                    viewModel.numBars,
-                    { viewModel.setNumBars(it) },
-                    { viewModel.storeNumBars() },
-                    2,
-                    32
-                )
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
+            ) {
+                SettingsControls(viewModel = viewModel)
+                Spacer(modifier = Modifier.height(8.dp))
+                BeatPatternEditor(viewModel = viewModel)
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        BeatPatternEditor(viewModel = viewModel)
-        Spacer(modifier = Modifier.weight(1.0f))
+
         Text(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             text = "Tap anywhere to start/stop",
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.secondary,
         )
+    }
+}
+
+@Composable
+private fun SettingsControls(
+    viewModel: MetronomeViewModel,
+    modifier: Modifier = Modifier,
+) {
+    val mode by viewModel.mode.collectAsStateWithLifecycle()
+
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
+    ) {
+        ModeToggle(viewModel)
+        BasicSettingsCard(viewModel = viewModel)
+        if (mode == MODE_SILENT_BARS) {
+            NumSelector(
+                label = "Silent bars",
+                viewModel.numSilentMeasures,
+                { viewModel.setNumSilentMeasures(it) },
+                { viewModel.storeNumSilentMeasures() },
+                1,
+                10
+            )
+        }
+        else if(mode == MODE_BAR_LOOP) {
+            NumSelector(
+                label = "Loop bars",
+                viewModel.numBars,
+                { viewModel.setNumBars(it) },
+                { viewModel.storeNumBars() },
+                2,
+                32
+            )
+        }
     }
 }
 
@@ -136,6 +164,6 @@ fun SettingsScreenHorizontalPreview() {
     GOTronomeTheme {
         val vm = viewModel<MockMetronomeViewModel>()
         vm.setMode("Bar loop")
-        SettingsScreen(viewModel = vm)
+        SettingsScreen(viewModel = vm, isLandscape = true)
     }
 }
