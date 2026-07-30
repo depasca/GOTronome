@@ -79,14 +79,15 @@ fun NumSelector(
     var rightLongPressed by remember { mutableStateOf(false) }
     var valueChanged by remember { mutableStateOf(false) }
 
-    // Long-press the down button to keep decreasing; persist once on release.
+    // Long-press the down button to keep decreasing; persist once on release. The value guard
+    // stops the loop at the rail, so a press whose release never arrives cannot spin forever.
     LaunchedEffect(leftPressed) {
         if (leftPressed) {
             valueChanged = true
             leftLongPressed = false
             delay(viewConfiguration.longPressTimeoutMillis)
             leftLongPressed = true
-            while (leftPressed) {
+            while (leftPressed && value > minVal) {
                 propertySetter(max(minVal, value - 4))
                 delay(50)
             }
@@ -99,14 +100,15 @@ fun NumSelector(
         }
     }
 
-    // Long-press the up button to keep increasing; persist once on release.
+    // Long-press the up button to keep increasing; persist once on release. The value guard
+    // stops the loop at the rail, so a press whose release never arrives cannot spin forever.
     LaunchedEffect(rightPressed) {
         if (rightPressed) {
             valueChanged = true
             rightLongPressed = false
             delay(viewConfiguration.longPressTimeoutMillis)
             rightLongPressed = true
-            while (rightPressed) {
+            while (rightPressed && value < maxVal) {
                 propertySetter(min(maxVal, value + 4))
                 delay(50)
             }
