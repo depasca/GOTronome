@@ -23,7 +23,7 @@ enum Voice : int {
 };
 
 constexpr int NUM_VOICES = 8;
-constexpr int STRIKE_STATE = 24;  // floats of per-strike memory available to a voice
+constexpr int STRIKE_STATE = 200;  // floats of per-strike memory available to a voice
 constexpr float kPi = 3.14159265358979f;
 constexpr float kBlipSeconds = 0.01f;
 
@@ -82,51 +82,58 @@ inline float hatPedal(float t, int age) {
     return 0.5f * decay(t, 0.025f) * dark;
 }
 
-// Two-pole resonator on `st` = {c1, c2, y1, y2}. Output is normalised by (1 - r)
-// so the peak gain is about one whatever the bandwidth.
-inline void tuneResonator(float *st, float freq, float bandwidth, double sampleRate) {
-    const float r = expf(-kPi * bandwidth / static_cast<float>(sampleRate));
-    st[0] = 2.0f * r * cosf(2.0f * kPi * freq / static_cast<float>(sampleRate));
+// Modal resonator on `st` = {c1, c2, y1, y2, gain}: a two-pole filter that, hit
+// with an impulse, rings as a decaying sine at `freq` with amplitude time
+// constant `tau`. Costs a few multiply-adds per sample instead of a sine call.
+inline void tuneMode(float *st, float freq, float tau, float amplitude, double sampleRate) {
+    const float sr = static_cast<float>(sampleRate);
+    const float r = expf(-1.0f / (tau * sr));
+    const float theta = 2.0f * kPi * freq / sr;
+    st[0] = 2.0f * r * cosf(theta);
     st[1] = -r * r;
     st[2] = 0.0f;
     st[3] = 0.0f;
+    st[4] = amplitude * sinf(theta);  // an impulse rings with peak 1/sin(theta); undo that
 }
 
-inline float resonate(float *st, float x, float bandwidth, double sampleRate) {
+inline float ringMode(float *st, float x) {
     const float y = x + st[0] * st[2] + st[1] * st[3];
     st[3] = st[2];
     st[2] = y;
-    const float r = expf(-kPi * bandwidth / static_cast<float>(sampleRate));
-    return (1.0f - r) * y;
+    return st[4] * y;
 }
 
-// Ride cymbal. A cymbal is thousands of modes, far closer to shaped noise than
-// to a chord of partials (that recipe is a bell). So: white noise excited by a
-// hard stick burst plus a wash that swells briefly and decays over a second or
-// two, run through five resonant bands in the 2-9 kHz shimmer region, with a
-// slow amplitude wobble for movement and a very short sine ping for the stick.
-constexpr int kRideBands = 5;
-constexpr float kRideFreq[kRideBands] = {1900.0f, 3100.0f, 4600.0f, 6400.0f, 8900.0f};
-constexpr float kRideBandwidth[kRideBands] = {260.0f, 380.0f, 520.0f, 700.0f, 1000.0f};
-constexpr float kRideTau[kRideBands] = {1.20f, 1.00f, 0.80f, 0.60f, 0.42f};
-constexpr float kRideGain[kRideBands] = {0.9f, 1.0f, 0.9f, 0.7f, 0.5f};
+// Ride cymbal by modal synthesis. A cymbal is a dense set of narrow, inharmonic
+// modes ringing for a second or more: a handful of long partials is a bell,
+// wide noisy bands are hiss, so this uses forty modes on a jittered log grid
+// from 700 Hz to 10 kHz, weighted towards the 3-4 kHz shimmer region, with the
+// low ones ringing longest. A short noise burst excites them, so phases are
+// random and neighbouring modes beat; a faint noise trickle keeps the wash alive.
+constexpr int kRideModes = 40;
+constexpr int kRideModeFloats = 5;
+
+inline void tuneRide(float *state, double sampleRate) {
+    for (int k = 0; k < kRideModes; ++k) {
+        const float pos = static_cast<float>(k) / (kRideModes - 1);
+        const float grid = 700.0f * powf(10000.0f / 700.0f, pos);
+        const float freq = grid * (1.0f + 0.10f * noise(k, RIDE));
+        const float tau = 1.4f * powf(700.0f / freq, 0.6f);
+        const float logRatio = logf(freq / 3500.0f);
+        const float weight = expf(-logRatio * logRatio / (2.0f * 0.7f * 0.7f)) + 0.25f;
+        const float amplitude = weight * (1.0f + 0.3f * noise(k + 100, RIDE));
+        tuneMode(state + kRideModeFloats * k, freq, tau, amplitude, sampleRate);
+    }
+}
 
 inline float ride(float t, int age, double sampleRate, float *state) {
-    if (age == 0) {
-        for (int b = 0; b < kRideBands; ++b) tuneResonator(state + 4 * b, kRideFreq[b], kRideBandwidth[b], sampleRate);
-    }
-    const float excite = noise(age, RIDE);
-    const float stick = 1.6f * decay(t, 0.010f);
-    const float swell = 1.0f - decay(t, 0.025f);
+    if (age == 0) tuneRide(state, sampleRate);
+    const float burst = decay(t, 0.004f);
+    const float trickle = 0.006f * decay(t, 0.5f);
+    const float excite = noise(age, RIDE) * (burst + trickle);
     float out = 0.0f;
-    for (int b = 0; b < kRideBands; ++b) {
-        const float env = stick + swell * decay(t, kRideTau[b]);
-        out += kRideGain[b] * resonate(state + 4 * b, excite * env, kRideBandwidth[b], sampleRate);
-    }
-    const float wobble = 1.0f + 0.18f * sinf(2.0f * kPi * 5.3f * t) + 0.10f * sinf(2.0f * kPi * 8.9f * t);
-    const float air = 0.05f * decay(t, 0.7f) * brightNoise(age, RIDE);
-    const float ping = 0.12f * decay(t, 0.03f) * (sinf(2.0f * kPi * 3620.0f * t) + 0.6f * sinf(2.0f * kPi * 5410.0f * t));
-    return 0.55f * out * wobble + air + ping;
+    for (int k = 0; k < kRideModes; ++k) out += ringMode(state + kRideModeFloats * k, excite);
+    const float stick = 0.15f * decay(t, 0.003f) * brightNoise(age, RIDE);
+    return 0.008f * out + stick;
 }
 
 inline float crossStick(float t, int age) {
