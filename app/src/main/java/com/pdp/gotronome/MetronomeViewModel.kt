@@ -10,6 +10,7 @@ import com.pdp.gotronome.data.MODE_SILENT_BARS
 import com.pdp.gotronome.data.STYLE_METRONOME
 import com.pdp.gotronome.data.Style
 import com.pdp.gotronome.data.UserPreferencesRepository
+import com.pdp.gotronome.data.bassRootMidi
 import com.pdp.gotronome.data.beatsForTimeSignature
 import com.pdp.gotronome.data.counterSequence
 import com.pdp.gotronome.data.defaultAccentPattern
@@ -76,6 +77,13 @@ open class MetronomeViewModel(
     private val _effectiveStyle = MutableStateFlow<Style>(metronomeStyle)
     open val effectiveStyle: StateFlow<Style> = _effectiveStyle
 
+    private val _bassEnabled = MutableStateFlow<Boolean>(false)
+    open val bassEnabled: StateFlow<Boolean> = _bassEnabled
+
+    // Root of the bass line as a pitch class from C (0..11).
+    private val _bassRoot = MutableStateFlow<Int>(0)
+    open val bassRoot: StateFlow<Int> = _bassRoot
+
     init {
         initialize()
     }
@@ -128,9 +136,13 @@ open class MetronomeViewModel(
             setMode(initialMode)
             Log.d(TAG, "Init -> Mode: $initialMode")
 
+            _bassEnabled.value = userPreferencesRepository.bassEnabledFlow.first()
+            _bassRoot.value = userPreferencesRepository.bassRootFlow.first()
+            metronome.setBassEnabled(_bassEnabled.value)
+            metronome.setBassRoot(bassRootMidi(_bassRoot.value))
             _styleId.value = userPreferencesRepository.styleFlow.first()
             applyStyle()
-            Log.d(TAG, "Init -> Style: ${_styleId.value}")
+            Log.d(TAG, "Init -> Style: ${_styleId.value}, bass ${_bassEnabled.value} root ${_bassRoot.value}")
         }
         Log.d(TAG, "MetronomeViewModel init done")
     }
@@ -198,16 +210,38 @@ open class MetronomeViewModel(
         }
     }
 
-    // Resolve the saved style against the current time signature and hand the
-    // groove to the engine; it takes effect on the next beat.
+    open fun setBassEnabled(enabled: Boolean) {
+        _bassEnabled.value = enabled
+        metronome?.setBassEnabled(enabled)
+        viewModelScope.launch {
+            userPreferencesRepository?.setBassEnabled(enabled)
+        }
+    }
+
+    open fun setBassRoot(pitchClass: Int) {
+        _bassRoot.value = pitchClass
+        metronome?.setBassRoot(bassRootMidi(pitchClass))
+        viewModelScope.launch {
+            userPreferencesRepository?.setBassRoot(pitchClass)
+        }
+    }
+
+    // Resolve the saved style against the current time signature and hand its
+    // groove and bass line to the engine; they take effect on the next beat.
     private fun applyStyle() {
         val style = resolveStyle(styles, _styleId.value, _timeSignature.value)
         _effectiveStyle.value = style
         val groove = style.grooves[_timeSignature.value]
+        val bass = groove?.bass
         if (style.isMetronome() || groove == null) {
             metronome?.setGroove(0, IntArray(0))
         } else {
             metronome?.setGroove(groove.stepsPerBeat, groove.stepVoices.toIntArray())
+        }
+        if (bass == null) {
+            metronome?.setBassLine(0, 1, IntArray(0))
+        } else {
+            metronome?.setBassLine(bass.stepsPerBeat, bass.bars, bass.notes.toIntArray())
         }
     }
 

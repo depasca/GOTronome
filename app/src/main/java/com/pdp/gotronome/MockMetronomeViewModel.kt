@@ -18,6 +18,8 @@ class MockMetronomeViewModel : MetronomeViewModel(null, null) {
     override val numBars: StateFlow<Int> = MutableStateFlow(4)
     override val accentPattern: StateFlow<List<Int>> = MutableStateFlow(listOf(2, 1, 0, 1))
     override val effectiveStyle: StateFlow<Style> = MutableStateFlow(metronomeStyle)
+    override val bassEnabled: StateFlow<Boolean> = MutableStateFlow(true)
+    override val bassRoot: StateFlow<Int> = MutableStateFlow(5)
 
     override fun setBeatsPerMinute(value: Int) {}
     override fun storeBeatsPerMinute() {}
@@ -35,5 +37,7 @@ class MockMetronomeViewModel : MetronomeViewModel(null, null) {
     override fun storeNumSilentMeasures() {}
     override fun cycleAccentBeat(index: Int) {}
     override fun setStyle(styleId: String) {}
+    override fun setBassEnabled(enabled: Boolean) {}
+    override fun setBassRoot(pitchClass: Int) {}
     override fun setPage(page: String){}
 }

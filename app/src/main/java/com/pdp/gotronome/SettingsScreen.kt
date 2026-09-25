@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.components.AppMenu
+import com.pdp.gotronome.components.BassControls
 import com.pdp.gotronome.components.BasicSettingsCard
 import com.pdp.gotronome.components.BeatPatternEditor
 import com.pdp.gotronome.components.ModeToggle
@@ -103,15 +104,23 @@ fun SettingsScreen(
     }
 }
 
-/** The style picker, with the per-beat accent editor underneath it for the Metronome style only. */
+/**
+ * The style picker, then the bass controls for styles that carry a bass line, or the
+ * per-beat accent editor for the Metronome style.
+ */
 @Composable
 private fun StyleSection(
     viewModel: MetronomeViewModel,
     modifier: Modifier = Modifier,
 ) {
     val effectiveStyle by viewModel.effectiveStyle.collectAsStateWithLifecycle()
+    val timeSignature by viewModel.timeSignature.collectAsStateWithLifecycle()
+    val hasBass = effectiveStyle.grooves[timeSignature]?.bass != null
     Column(modifier = modifier) {
         StyleSelector(viewModel = viewModel)
+        if (hasBass) {
+            BassControls(viewModel = viewModel)
+        }
         if (effectiveStyle.isMetronome()) {
             BeatPatternEditor(viewModel = viewModel)
         }
