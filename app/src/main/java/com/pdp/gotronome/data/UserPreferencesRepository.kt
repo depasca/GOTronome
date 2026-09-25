@@ -25,6 +25,7 @@ val SHOW_BARS = booleanPreferencesKey("show_bars")
 val NUM_BARS = intPreferencesKey("num_bars")
 val NUM_SILENT_MEASURES = intPreferencesKey("num_silent_measures")
 val MODE = stringPreferencesKey("mode")
+val STYLE = stringPreferencesKey("style")
 val counterSequence = sequenceOf(5, 8, 13, 21)
 
 const val FOURFOURS = "4/4"
@@ -92,6 +93,12 @@ class UserPreferencesRepository (
         .map {
             preferences ->
             (preferences[MODE] ?: modes.first())
+        }
+
+    /** The saved style id; may not be valid for the current time signature, see [resolveStyle]. */
+    val styleFlow: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[STYLE] ?: STYLE_METRONOME
         }
 
     val showBarsFlow: Flow<Boolean> = context.dataStore.data
@@ -170,6 +177,12 @@ class UserPreferencesRepository (
     suspend fun setMode(value: String) {
         context.dataStore.edit { preferences ->
             preferences[MODE] = value
+        }
+    }
+
+    suspend fun setStyle(styleId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[STYLE] = styleId
         }
     }
 

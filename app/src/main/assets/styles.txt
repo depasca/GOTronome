@@ -1,0 +1,31 @@
+# GOTronome drum styles. Shared byte-for-byte with the iOS app.
+#
+# style  <id> <display name>
+# groove <time signature> <steps per beat> <one token per step>
+#
+# A token is the set of voices struck on that step, or "." for a rest:
+#   K kick   S snare   H closed hi-hat   P pedal hi-hat   R ride   X cross-stick
+# The metronome style has no grooves: it plays the per-beat accent pattern
+# and is valid in every time signature. Styles appear in file order.
+
+style metronome Metronome
+
+style rock Rock
+groove 4/4 2 KH H SH H KH H SH H
+groove 6/8 1 KH H H SH H H
+
+style swing Swing
+groove 4/4 3 KR . . RP . R R . . RP . R
+
+style shuffle Shuffle
+groove 4/4 3 KH . H SH . H KH . H SH . H
+
+style waltz Waltz
+groove 3/4 1 KH XH XH
+
+style bossa Bossa
+groove 4/4 4 KXH . H X H . KXH . KH . XH . XH . KH .
+
+style march March
+groove 2/4 2 K S KS S
+groove 2/2 2 K S KS S
