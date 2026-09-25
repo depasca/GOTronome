@@ -3,6 +3,7 @@ package com.pdp.gotronome.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -41,8 +42,8 @@ fun StyleSelector(
     var expanded by remember { mutableStateOf(false) }
 
     Row(
-        modifier = modifier.padding(all = 8.dp),
-        horizontalArrangement = Arrangement.Start,
+        modifier = modifier.fillMaxWidth().padding(all = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -51,7 +52,7 @@ fun StyleSelector(
             color = MaterialTheme.colorScheme.secondary,
             textAlign = TextAlign.Center,
         )
-        Box(modifier = Modifier.padding(start = 16.dp)) {
+        Box {
             OutlinedButton(onClick = { expanded = true }) {
                 Text(
                     text = effectiveStyle.name,

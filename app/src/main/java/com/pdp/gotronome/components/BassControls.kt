@@ -3,6 +3,8 @@ package com.pdp.gotronome.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -43,7 +45,7 @@ fun BassControls(
     var expanded by remember { mutableStateOf(false) }
 
     Row(
-        modifier = modifier.padding(all = 8.dp),
+        modifier = modifier.fillMaxWidth().padding(all = 8.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -58,7 +60,8 @@ fun BassControls(
             onCheckedChange = { viewModel.setBassEnabled(it) },
             modifier = Modifier.padding(start = 16.dp).semantics { contentDescription = "Bass on/off" },
         )
-        Box(modifier = Modifier.padding(start = 16.dp)) {
+        Spacer(modifier = Modifier.weight(1f))
+        Box {
             OutlinedButton(onClick = { expanded = true }, enabled = enabled) {
                 Text(
                     text = "Root ${rootNames[root]}",
