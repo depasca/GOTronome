@@ -39,6 +39,13 @@ void setAccentPattern(JNIEnv* env, jobject thiz, jintArray pattern) {
     env->ReleaseIntArrayElements(pattern, elems, JNI_ABORT);
 }
 
+void setGroove(JNIEnv* env, jobject thiz, int stepsPerBeat, jintArray stepVoices) {
+    jsize len = env->GetArrayLength(stepVoices);
+    jint* elems = env->GetIntArrayElements(stepVoices, nullptr);
+    engine.setGroove(stepsPerBeat, elems, static_cast<int>(len));
+    env->ReleaseIntArrayElements(stepVoices, elems, JNI_ABORT);
+}
+
 extern "C" JNICALL
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
     JNIEnv* env;
@@ -67,6 +74,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
             {"setSilentMeasuresEnabled", "(Z)V", reinterpret_cast<void*>(setSilentMeasuresEnabled)},
             {"setCountInEnabled", "(Z)V", reinterpret_cast<void*>(setCountInEnabled)},
             {"setAccentPattern", "([I)V", reinterpret_cast<void*>(setAccentPattern)},
+            {"setGroove", "(I[I)V", reinterpret_cast<void*>(setGroove)},
     };
     int rc = env->RegisterNatives(c, methods, sizeof(methods)/sizeof(JNINativeMethod));
     if (rc != JNI_OK) return rc;

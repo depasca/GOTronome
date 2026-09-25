@@ -16,7 +16,16 @@
 
 class MetronomeEngine : public oboe::AudioStreamCallback {
 public:
-    static const int MAX_BEATS = 16;
+    static constexpr int MAX_BEATS = 16;
+    static constexpr int MAX_STEPS_PER_BEAT = 4;
+    static constexpr int NUM_VOICES = 8;
+    static constexpr int MAX_STEPS = MAX_BEATS * MAX_STEPS_PER_BEAT;
+
+    // A groove step is a bitmask of these voices.
+    enum Voice : int {
+        VOICE_BLIP_HI = 1 << 0,
+        VOICE_BLIP_LO = 1 << 1,
+    };
 
     MetronomeEngine();
     ~MetronomeEngine() override;
@@ -45,6 +54,11 @@ public:
 
     void setAccentPattern(const int *pattern, int count);
 
+    // A groove is stepsPerBeat sub-steps per beat, each a voice bitmask, for a
+    // whole measure (beat-major order). stepsPerBeat == 0 selects the Metronome
+    // style: one blip per beat chosen from the accent pattern.
+    void setGroove(int stepsPerBeat, const int *stepVoices, int count);
+
 private:
     std::shared_ptr<oboe::AudioStream> stream;
     std::atomic<bool> isPlaying{false};
@@ -66,6 +80,12 @@ private:
     int samplesSinceBeat = 0;             // audio thread only: samples since last beat
     // Per-beat level: 2 = accent, 1 = normal, 0 = mute. Written from the JNI thread.
     std::atomic<int> accentPattern[MAX_BEATS];
+    std::atomic<int> grooveStepsPerBeat{0};     // written from the JNI thread; 0 = Metronome style
+    std::atomic<int> grooveStepVoices[MAX_STEPS]; // written from the JNI thread
+    int activeStepsPerBeat = 1;           // audio thread only: sub-steps in the current beat
+    int nextStep = 0;                     // audio thread only: next sub-step to strike
+    bool metronomeStyle = true;           // audio thread only: latched at each beat
+    int voiceAge[NUM_VOICES];             // audio thread only: samples since struck, -1 = silent
     std::mutex mLock;
 
     JavaVM *javaVm = nullptr;
@@ -75,6 +95,10 @@ private:
     oboe::Result createStream();
     oboe::Result startStream(); // open + start with retries; assumes mLock held
     void generateTick(float *buffer, int32_t numFrames);
+    void resetVoices();
+    void strikeVoices(int mask);
+    float renderVoices();
+    int voicesForStep(int beat, int step) const;
     void sendBeatToJava(int beat);
 
 };

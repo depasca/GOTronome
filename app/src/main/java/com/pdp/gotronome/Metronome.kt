@@ -32,4 +32,16 @@ open class Metronome {
     open external fun setNumSilentMeasures(numSilentMeasures: Int)
     open external fun setCountInEnabled(enabled: Boolean)
     open external fun setAccentPattern(pattern: IntArray)
+
+    /**
+     * A groove is [stepsPerBeat] sub-steps per beat, each a bitmask of [Voice]s, laid out
+     * beat-major for the whole measure. `stepsPerBeat = 0` selects the Metronome style,
+     * one blip per beat from the accent pattern.
+     */
+    open external fun setGroove(stepsPerBeat: Int, stepVoices: IntArray)
+
+    object Voice {
+        const val BLIP_HI = 1 shl 0
+        const val BLIP_LO = 1 shl 1
+    }
 }

@@ -1,4 +1,5 @@
 #include "MetronomeEngine.h"
+#include <algorithm>
 #include <cmath>
 #include <chrono>
 #include <android/log.h>
@@ -19,6 +20,10 @@ MetronomeEngine::MetronomeEngine() {
     for (int i = 0; i < MAX_BEATS; ++i) {
         accentPattern[i].store(i == 0 ? 2 : 1, std::memory_order_relaxed);
     }
+    for (auto &step : grooveStepVoices) {
+        step.store(0, std::memory_order_relaxed);
+    }
+    resetVoices();
 }
 
 MetronomeEngine::~MetronomeEngine() {
@@ -38,6 +43,7 @@ oboe::Result MetronomeEngine::start(int _beatsPerMinute, int _beatsPerMeasure) {
     isSilent.store(false, std::memory_order_relaxed);
     beatPhase = 0.0;
     samplesSinceBeat = 0;
+    resetVoices();
 
     // Arm a one-bar count-in lead-in before the song proper.
     isCountingIn = countInEnabled.load(std::memory_order_relaxed);
@@ -132,6 +138,7 @@ oboe::Result  MetronomeEngine::stop() {
                 countInBeat = 0;
                 beatPhase = 0.0;
                 samplesSinceBeat = 0;
+                resetVoices();
             }
         }
     } while (result != oboe::Result::OK && tryCount++ < 3);
@@ -158,6 +165,8 @@ oboe::Result MetronomeEngine::createStream() {
     return result;
 }
 
+namespace {
+
 float envelope(float t, float duration) {
     float attack = 0.002f;
     float release = 0.008f;
@@ -166,10 +175,83 @@ float envelope(float t, float duration) {
     else return 0.9f;
 }
 
+constexpr float kBlipSeconds = 0.01f;
+
+int voiceDurationSamples(int voice, double sampleRate) {
+    switch (1 << voice) {
+        case MetronomeEngine::VOICE_BLIP_HI:
+        case MetronomeEngine::VOICE_BLIP_LO:
+            return static_cast<int>(sampleRate * kBlipSeconds);
+        default:
+            return 0;
+    }
+}
+
+float renderBlip(int age, double sampleRate, float freq, float volume) {
+    const float duration = static_cast<int>(sampleRate * kBlipSeconds) / sampleRate;
+    const float t = static_cast<float>(age) / sampleRate;
+    return volume * envelope(t, duration) * sinf(2.0f * M_PI * freq * t);
+}
+
+float renderVoice(int voice, int age, double sampleRate) {
+    switch (1 << voice) {
+        case MetronomeEngine::VOICE_BLIP_HI: return renderBlip(age, sampleRate, 1760.0f, 0.5f);
+        case MetronomeEngine::VOICE_BLIP_LO: return renderBlip(age, sampleRate, 880.0f, 0.3f);
+        default: return 0.0f;
+    }
+}
+
+// Per-beat level (2 = accent, 1 = normal, 0 = mute) as a voice mask.
+int blipForLevel(int level) {
+    if (level == 2) return MetronomeEngine::VOICE_BLIP_HI;
+    if (level == 1) return MetronomeEngine::VOICE_BLIP_LO;
+    return 0;
+}
+
+// Sample offset of a sub-step inside a beat. Relative to the beat, so the
+// fractional carry in beatPhase keeps the sub-steps drift-free as well.
+int stepStartSample(int step, double samplesPerBeat, int stepsPerBeat) {
+    return static_cast<int>(std::floor(step * samplesPerBeat / stepsPerBeat));
+}
+
+} // namespace
+
+void MetronomeEngine::resetVoices() {
+    for (int &age : voiceAge) age = -1;
+    nextStep = 0;
+    activeStepsPerBeat = 1;
+    metronomeStyle = true;
+}
+
+void MetronomeEngine::strikeVoices(int mask) {
+    for (int v = 0; v < NUM_VOICES; ++v) {
+        if (mask & (1 << v)) voiceAge[v] = 0;
+    }
+}
+
+float MetronomeEngine::renderVoices() {
+    float out = 0.0f;
+    for (int v = 0; v < NUM_VOICES; ++v) {
+        if (voiceAge[v] < 0) continue;
+        out += renderVoice(v, voiceAge[v], sampleRate);
+        if (++voiceAge[v] >= voiceDurationSamples(v, sampleRate)) voiceAge[v] = -1;
+    }
+    return out;
+}
+
+int MetronomeEngine::voicesForStep(int beat, int step) const {
+    if (beat < 1 || beat > MAX_BEATS) return 0;
+    if (isCountingIn.load(std::memory_order_relaxed)) {
+        // The count-in is a steady accent-on-1 click whatever the style.
+        return blipForLevel(beat == 1 ? 2 : 1);
+    }
+    if (metronomeStyle) {
+        return blipForLevel(accentPattern[beat - 1].load(std::memory_order_relaxed));
+    }
+    return grooveStepVoices[(beat - 1) * activeStepsPerBeat + step].load(std::memory_order_relaxed);
+}
+
 void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
-    const float tickVolume = 0.3f;
-    const float accentVolume = 0.5f;
-    const int tickLength = static_cast<int>(sampleRate * 0.01); // 10ms tick
     const double period = samplesPerBeat;
     const bool silentEnabled = silentMeasureEnabled.load(std::memory_order_relaxed);
     const int numSilent = silentMeasures.load(std::memory_order_relaxed);
@@ -212,34 +294,24 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
                 }
                 currentBeat.store(beat, std::memory_order_relaxed);
             }
+
+            // Latch the groove for this beat so a live change from the JNI
+            // thread cannot move the step grid mid-beat.
+            const int grooveSteps = grooveStepsPerBeat.load(std::memory_order_acquire);
+            metronomeStyle = isCountingIn.load(std::memory_order_relaxed) || grooveSteps == 0;
+            activeStepsPerBeat = metronomeStyle ? 1 : grooveSteps;
+            nextStep = 0;
         }
 
-        const int beat = currentBeat.load(std::memory_order_relaxed);
-        const bool isTick = samplesSinceBeat < tickLength;
-
-        // Per-beat level: 2 = accent, 1 = normal, 0 = mute. The count-in uses a
-        // steady accent-on-1 and ignores the pattern.
-        int level;
-        if (isCountingIn.load(std::memory_order_relaxed)) {
-            level = (beat == 1) ? 2 : 1;
-        } else if (beat >= 1 && beat <= MAX_BEATS) {
-            level = accentPattern[beat - 1].load(std::memory_order_relaxed);
-        } else {
-            level = 1;
+        if (nextStep < activeStepsPerBeat &&
+            samplesSinceBeat >= stepStartSample(nextStep, period, activeStepsPerBeat)) {
+            if (!isSilent.load(std::memory_order_relaxed)) {
+                strikeVoices(voicesForStep(currentBeat.load(std::memory_order_relaxed), nextStep));
+            }
+            nextStep++;
         }
 
-        const float freq = (level == 2) ? 1760.0f : 880.0f;
-        float volume = (level == 2) ? accentVolume : (level == 0 ? 0.0f : tickVolume);
-        if (isSilent.load(std::memory_order_relaxed)) {
-            volume = 0.0f;
-        }
-        if (isTick) {
-            const float t = static_cast<float>(samplesSinceBeat) / sampleRate;
-            const float env = envelope(t, tickLength / sampleRate);
-            buffer[i] = volume * env * sinf(2.0f * M_PI * freq * t);
-        } else {
-            buffer[i] = 0.0f;
-        }
+        buffer[i] = renderVoices();
 
         beatPhase -= 1.0;
         samplesSinceBeat++;
@@ -314,5 +386,15 @@ void MetronomeEngine::setAccentPattern(const int *pattern, int count) {
     for (int i = 0; i < MAX_BEATS; ++i) {
         accentPattern[i].store(i < count ? pattern[i] : 1, std::memory_order_relaxed);
     }
+}
+
+void MetronomeEngine::setGroove(int stepsPerBeat, const int *stepVoices, int count) {
+    const int steps = std::min(std::max(stepsPerBeat, 0), MAX_STEPS_PER_BEAT);
+    for (int i = 0; i < MAX_STEPS; ++i) {
+        grooveStepVoices[i].store(i < count ? stepVoices[i] : 0, std::memory_order_relaxed);
+    }
+    // Release after the steps so the audio thread never pairs a new step count
+    // with stale step voices.
+    grooveStepsPerBeat.store(steps, std::memory_order_release);
 }
 
