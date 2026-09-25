@@ -14,6 +14,7 @@ constexpr int MAX_STRIKES = 32;
 struct Strike {
     int voice = 0;  // voice index 0..NUM_VOICES-1
     int age = -1;   // samples since struck, -1 = free slot
+    float state[STRIKE_STATE] = {};  // voice-owned memory, e.g. filter history
 };
 
 struct StrikePool {
@@ -35,6 +36,7 @@ inline void strike(StrikePool &pool, int mask) {
         }
         target->voice = v;
         target->age = 0;
+        for (float &f : target->state) f = 0.0f;
     }
 }
 
@@ -43,7 +45,7 @@ inline float renderPool(StrikePool &pool, double sampleRate) {
     float out = 0.0f;
     for (Strike &s : pool.slots) {
         if (s.age < 0) continue;
-        out += render(s.voice, s.age, sampleRate);
+        out += render(s.voice, s.age, sampleRate, s.state);
         if (++s.age >= durationSamples(s.voice, sampleRate)) s.age = -1;
     }
     return softLimit(out);

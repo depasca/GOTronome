@@ -1,10 +1,10 @@
 #ifndef GOTRONOME_VOICES_H
 #define GOTRONOME_VOICES_H
 
-// Synthesized percussion voices. Every voice is a pure function of the number
-// of samples since it was struck, so the audio thread needs no per-voice state
-// beyond that counter. No Android or Oboe dependency: this header is also built
-// on the host to render the voices for listening and level checks.
+// Synthesized percussion voices. Every voice is a function of the number of
+// samples since it was struck plus a small, explicitly passed state block for
+// voices that need filter memory. No Android or Oboe dependency: this header
+// is also built on the host to render the voices for listening and level checks.
 
 #include <cmath>
 #include <cstdint>
@@ -23,6 +23,7 @@ enum Voice : int {
 };
 
 constexpr int NUM_VOICES = 8;
+constexpr int STRIKE_STATE = 24;  // floats of per-strike memory available to a voice
 constexpr float kPi = 3.14159265358979f;
 constexpr float kBlipSeconds = 0.01f;
 
@@ -81,25 +82,51 @@ inline float hatPedal(float t, int age) {
     return 0.5f * decay(t, 0.025f) * dark;
 }
 
-// Ride cymbal: a stick "ping" on top of a long, inharmonic shimmer. Cymbal
-// modes are not harmonic, so the partials are at irrational-looking ratios and
-// the low ones ring longest; two close pairs beat slowly for the shimmer.
-inline float ride(float t, int age) {
-    constexpr float f0 = 540.0f;
-    constexpr float ratios[] = {1.0f, 1.49f, 2.13f, 2.61f, 3.24f, 3.71f, 4.53f, 5.42f, 6.33f, 7.88f};
-    constexpr float amps[] = {0.30f, 0.26f, 0.22f, 0.20f, 0.17f, 0.15f, 0.12f, 0.10f, 0.08f, 0.06f};
-    constexpr float taus[] = {1.10f, 1.00f, 0.90f, 0.80f, 0.65f, 0.55f, 0.45f, 0.38f, 0.32f, 0.26f};
-    float body = 0.0f;
-    for (int i = 0; i < 10; ++i) {
-        body += amps[i] * decay(t, taus[i]) * sinf(2.0f * kPi * f0 * ratios[i] * t);
+// Two-pole resonator on `st` = {c1, c2, y1, y2}. Output is normalised by (1 - r)
+// so the peak gain is about one whatever the bandwidth.
+inline void tuneResonator(float *st, float freq, float bandwidth, double sampleRate) {
+    const float r = expf(-kPi * bandwidth / static_cast<float>(sampleRate));
+    st[0] = 2.0f * r * cosf(2.0f * kPi * freq / static_cast<float>(sampleRate));
+    st[1] = -r * r;
+    st[2] = 0.0f;
+    st[3] = 0.0f;
+}
+
+inline float resonate(float *st, float x, float bandwidth, double sampleRate) {
+    const float y = x + st[0] * st[2] + st[1] * st[3];
+    st[3] = st[2];
+    st[2] = y;
+    const float r = expf(-kPi * bandwidth / static_cast<float>(sampleRate));
+    return (1.0f - r) * y;
+}
+
+// Ride cymbal. A cymbal is thousands of modes, far closer to shaped noise than
+// to a chord of partials (that recipe is a bell). So: white noise excited by a
+// hard stick burst plus a wash that swells briefly and decays over a second or
+// two, run through five resonant bands in the 2-9 kHz shimmer region, with a
+// slow amplitude wobble for movement and a very short sine ping for the stick.
+constexpr int kRideBands = 5;
+constexpr float kRideFreq[kRideBands] = {1900.0f, 3100.0f, 4600.0f, 6400.0f, 8900.0f};
+constexpr float kRideBandwidth[kRideBands] = {260.0f, 380.0f, 520.0f, 700.0f, 1000.0f};
+constexpr float kRideTau[kRideBands] = {1.20f, 1.00f, 0.80f, 0.60f, 0.42f};
+constexpr float kRideGain[kRideBands] = {0.9f, 1.0f, 0.9f, 0.7f, 0.5f};
+
+inline float ride(float t, int age, double sampleRate, float *state) {
+    if (age == 0) {
+        for (int b = 0; b < kRideBands; ++b) tuneResonator(state + 4 * b, kRideFreq[b], kRideBandwidth[b], sampleRate);
     }
-    // Slow beating between near partials gives the "wash" its movement.
-    const float shimmer = 0.07f * decay(t, 0.9f) *
-                          (sinf(2.0f * kPi * 1610.0f * t) * sinf(2.0f * kPi * 3.1f * t) +
-                           sinf(2.0f * kPi * 2870.0f * t) * sinf(2.0f * kPi * 4.7f * t));
-    const float wash = 0.06f * decay(t, 0.45f) * brightNoise(age, RIDE);
-    const float ping = 0.25f * decay(t, 0.006f) * noise(age, RIDE);
-    return 0.32f * body + shimmer + wash + ping;
+    const float excite = noise(age, RIDE);
+    const float stick = 1.6f * decay(t, 0.010f);
+    const float swell = 1.0f - decay(t, 0.025f);
+    float out = 0.0f;
+    for (int b = 0; b < kRideBands; ++b) {
+        const float env = stick + swell * decay(t, kRideTau[b]);
+        out += kRideGain[b] * resonate(state + 4 * b, excite * env, kRideBandwidth[b], sampleRate);
+    }
+    const float wobble = 1.0f + 0.18f * sinf(2.0f * kPi * 5.3f * t) + 0.10f * sinf(2.0f * kPi * 8.9f * t);
+    const float air = 0.05f * decay(t, 0.7f) * brightNoise(age, RIDE);
+    const float ping = 0.12f * decay(t, 0.03f) * (sinf(2.0f * kPi * 3620.0f * t) + 0.6f * sinf(2.0f * kPi * 5410.0f * t));
+    return 0.55f * out * wobble + air + ping;
 }
 
 inline float crossStick(float t, int age) {
@@ -117,7 +144,7 @@ inline float durationSeconds(int voiceBit) {
         case SNARE: return 0.25f;
         case HAT_CLOSED: return 0.07f;
         case HAT_PEDAL: return 0.12f;
-        case RIDE: return 1.80f;
+        case RIDE: return 2.00f;
         case CROSS_STICK: return 0.06f;
         default: return 0.0f;
     }
@@ -127,8 +154,9 @@ inline int durationSamples(int voiceIndex, double sampleRate) {
     return static_cast<int>(sampleRate * durationSeconds(1 << voiceIndex));
 }
 
-// Sample `age` of voice number `voiceIndex` (0..NUM_VOICES-1).
-inline float render(int voiceIndex, int age, double sampleRate) {
+// Sample `age` of voice number `voiceIndex` (0..NUM_VOICES-1). `state` is the
+// strike's STRIKE_STATE floats, zeroed when it was struck.
+inline float render(int voiceIndex, int age, double sampleRate, float *state) {
     const float t = static_cast<float>(age) / sampleRate;
     switch (1 << voiceIndex) {
         case BLIP_HI: return blip(age, sampleRate, 1760.0f, 0.5f);
@@ -137,7 +165,7 @@ inline float render(int voiceIndex, int age, double sampleRate) {
         case SNARE: return snare(t, age);
         case HAT_CLOSED: return hatClosed(t, age);
         case HAT_PEDAL: return hatPedal(t, age);
-        case RIDE: return ride(t, age);
+        case RIDE: return ride(t, age, sampleRate, state);
         case CROSS_STICK: return crossStick(t, age);
         default: return 0.0f;
     }
