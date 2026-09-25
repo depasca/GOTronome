@@ -4,6 +4,8 @@ import android.util.Log
 
 open class Metronome {
     companion object {
+        /** Rest marker in a bass line. */
+        const val BASS_REST = -1000
         val TAG = "GOT-Metronome"
         private var callback: MetronomeCallback? = null
 
@@ -42,9 +44,18 @@ open class Metronome {
 
     /**
      * Give voice number [voiceIndex] (0-based bit position of a [Voice]) a recorded one-shot.
-     * Mono frames in -1..1 at [sampleRate]. Ignored by the engine while playing.
+     * Mono frames in -1..1 at [sampleRate]; [baseMidiNote] is the recording's pitch for pitched
+     * voices, 0 for drums. Ignored by the engine while playing.
      */
-    open external fun loadSample(voiceIndex: Int, frames: FloatArray, sampleRate: Int)
+    open external fun loadSample(voiceIndex: Int, frames: FloatArray, sampleRate: Int, baseMidiNote: Int)
+
+    /**
+     * A bass line: [stepsPerBeat] sub-steps per beat over [bars] measures, each entry a semitone
+     * offset from the root or [BASS_REST]. Plays only with drum styles and when enabled.
+     */
+    open external fun setBassLine(stepsPerBeat: Int, bars: Int, notes: IntArray)
+    open external fun setBassRoot(midiNote: Int)
+    open external fun setBassEnabled(enabled: Boolean)
 
     object Voice {
         const val BLIP_HI = 1 shl 0
@@ -55,5 +66,7 @@ open class Metronome {
         const val HAT_PEDAL = 1 shl 5
         const val RIDE = 1 shl 6
         const val CROSS_STICK = 1 shl 7
+        const val BASS = 1 shl 8
     }
+
 }

@@ -46,11 +46,26 @@ void setGroove(JNIEnv* env, jobject thiz, int stepsPerBeat, jintArray stepVoices
     env->ReleaseIntArrayElements(stepVoices, elems, JNI_ABORT);
 }
 
-void loadSample(JNIEnv* env, jobject thiz, int voiceIndex, jfloatArray frames, int rate) {
+void loadSample(JNIEnv* env, jobject thiz, int voiceIndex, jfloatArray frames, int rate, int baseMidiNote) {
     jsize len = env->GetArrayLength(frames);
     jfloat* elems = env->GetFloatArrayElements(frames, nullptr);
-    engine.loadSample(voiceIndex, elems, static_cast<int>(len), rate);
+    engine.loadSample(voiceIndex, elems, static_cast<int>(len), rate, baseMidiNote);
     env->ReleaseFloatArrayElements(frames, elems, JNI_ABORT);
+}
+
+void setBassLine(JNIEnv* env, jobject thiz, int stepsPerBeat, int bars, jintArray notes) {
+    jsize len = env->GetArrayLength(notes);
+    jint* elems = env->GetIntArrayElements(notes, nullptr);
+    engine.setBassLine(stepsPerBeat, bars, elems, static_cast<int>(len));
+    env->ReleaseIntArrayElements(notes, elems, JNI_ABORT);
+}
+
+void setBassRoot(JNIEnv* env, jobject thiz, int midiNote) {
+    engine.setBassRoot(midiNote);
+}
+
+void setBassEnabled(JNIEnv* env, jobject thiz, bool enabled) {
+    engine.setBassEnabled(enabled);
 }
 
 extern "C" JNICALL
@@ -82,7 +97,10 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
             {"setCountInEnabled", "(Z)V", reinterpret_cast<void*>(setCountInEnabled)},
             {"setAccentPattern", "([I)V", reinterpret_cast<void*>(setAccentPattern)},
             {"setGroove", "(I[I)V", reinterpret_cast<void*>(setGroove)},
-            {"loadSample", "(I[FI)V", reinterpret_cast<void*>(loadSample)},
+            {"loadSample", "(I[FII)V", reinterpret_cast<void*>(loadSample)},
+            {"setBassLine", "(II[I)V", reinterpret_cast<void*>(setBassLine)},
+            {"setBassRoot", "(I)V", reinterpret_cast<void*>(setBassRoot)},
+            {"setBassEnabled", "(Z)V", reinterpret_cast<void*>(setBassEnabled)},
     };
     int rc = env->RegisterNatives(c, methods, sizeof(methods)/sizeof(JNINativeMethod));
     if (rc != JNI_OK) return rc;

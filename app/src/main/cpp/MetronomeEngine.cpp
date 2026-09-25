@@ -23,6 +23,9 @@ MetronomeEngine::MetronomeEngine() {
     for (auto &step : grooveStepVoices) {
         step.store(0, std::memory_order_relaxed);
     }
+    for (auto &note : bassNotes) {
+        note.store(BASS_REST, std::memory_order_relaxed);
+    }
     resetVoices();
 }
 
@@ -187,6 +190,25 @@ void MetronomeEngine::resetVoices() {
     nextStep = 0;
     activeStepsPerBeat = 1;
     metronomeStyle = true;
+    nextBassStep = 0;
+    activeBassStepsPerBeat = 0;
+    activeBassBars = 1;
+}
+
+int MetronomeEngine::bassNoteForStep(int beat, int step) const {
+    if (beat < 1 || beat > MAX_BEATS || activeBassStepsPerBeat == 0) return BASS_REST;
+    const int bar = currentMeasure % activeBassBars;
+    const int index = ((bar * beatsPerMeasure) + (beat - 1)) * activeBassStepsPerBeat + step;
+    if (index < 0 || index >= MAX_BASS_STEPS) return BASS_REST;
+    return bassNotes[index].load(std::memory_order_relaxed);
+}
+
+// Playback-rate multiplier that transposes the bass sound to `midiNote`. The
+// synth placeholder sits at A1 (MIDI 33); a recorded note declares its own pitch.
+float MetronomeEngine::bassRateFor(int midiNote) const {
+    const int bassIndex = voices::voiceIndex(voices::BASS);
+    const int base = samples.voices[bassIndex].length > 0 ? samples.voices[bassIndex].baseMidiNote : 33;
+    return powf(2.0f, static_cast<float>(midiNote - base) / 12.0f);
 }
 
 int MetronomeEngine::voicesForStep(int beat, int step) const {
@@ -251,6 +273,20 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
             metronomeStyle = isCountingIn.load(std::memory_order_relaxed) || grooveSteps == 0;
             activeStepsPerBeat = metronomeStyle ? 1 : grooveSteps;
             nextStep = 0;
+            const bool bassOn = bassEnabled.load(std::memory_order_relaxed) && !metronomeStyle;
+            activeBassStepsPerBeat = bassOn ? bassStepsPerBeat.load(std::memory_order_acquire) : 0;
+            activeBassBars = std::max(1, bassBars.load(std::memory_order_relaxed));
+            nextBassStep = 0;
+        }
+
+        if (nextBassStep < activeBassStepsPerBeat &&
+            samplesSinceBeat >= stepStartSample(nextBassStep, period, activeBassStepsPerBeat)) {
+            const int note = bassNoteForStep(currentBeat.load(std::memory_order_relaxed), nextBassStep);
+            if (note != BASS_REST && !isSilent.load(std::memory_order_relaxed)) {
+                const int midi = bassRoot.load(std::memory_order_relaxed) + note;
+                voices::strike(strikes, voices::BASS, bassRateFor(midi));
+            }
+            nextBassStep++;
         }
 
         if (nextStep < activeStepsPerBeat &&
@@ -338,7 +374,7 @@ void MetronomeEngine::setAccentPattern(const int *pattern, int count) {
     }
 }
 
-void MetronomeEngine::loadSample(int voiceIndex, const float *frames, int length, int rate) {
+void MetronomeEngine::loadSample(int voiceIndex, const float *frames, int length, int rate, int baseMidiNote) {
     std::lock_guard<std::mutex> lock(mLock);
     if (voiceIndex < 0 || voiceIndex >= NUM_VOICES || length <= 0 || rate <= 0) return;
     if (isPlaying.load(std::memory_order_relaxed)) {
@@ -346,8 +382,26 @@ void MetronomeEngine::loadSample(int voiceIndex, const float *frames, int length
         return;
     }
     sampleStorage[voiceIndex].assign(frames, frames + length);
-    samples.voices[voiceIndex] = {sampleStorage[voiceIndex].data(), length, static_cast<float>(rate)};
+    samples.voices[voiceIndex] = {sampleStorage[voiceIndex].data(), length, static_cast<float>(rate), baseMidiNote};
     LOGD("MetronomeEngine::loadSample voice %d: %d frames at %d Hz", voiceIndex, length, rate);
+}
+
+void MetronomeEngine::setBassLine(int stepsPerBeat, int bars, const int *notes, int count) {
+    const int steps = std::min(std::max(stepsPerBeat, 0), MAX_STEPS_PER_BEAT);
+    const int measures = std::min(std::max(bars, 1), MAX_BASS_BARS);
+    for (int i = 0; i < MAX_BASS_STEPS; ++i) {
+        bassNotes[i].store(i < count ? notes[i] : BASS_REST, std::memory_order_relaxed);
+    }
+    bassBars.store(measures, std::memory_order_relaxed);
+    bassStepsPerBeat.store(steps, std::memory_order_release);
+}
+
+void MetronomeEngine::setBassRoot(int midiNote) {
+    bassRoot.store(midiNote, std::memory_order_relaxed);
+}
+
+void MetronomeEngine::setBassEnabled(bool enabled) {
+    bassEnabled.store(enabled, std::memory_order_relaxed);
 }
 
 void MetronomeEngine::setGroove(int stepsPerBeat, const int *stepVoices, int count) {

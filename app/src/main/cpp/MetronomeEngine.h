@@ -22,6 +22,9 @@ public:
     static constexpr int MAX_STEPS_PER_BEAT = 4;
     static constexpr int NUM_VOICES = voices::NUM_VOICES;
     static constexpr int MAX_STEPS = MAX_BEATS * MAX_STEPS_PER_BEAT;
+    static constexpr int MAX_BASS_BARS = 4;
+    static constexpr int MAX_BASS_STEPS = MAX_STEPS * MAX_BASS_BARS;
+    static constexpr int BASS_REST = -1000;
 
     MetronomeEngine();
     ~MetronomeEngine() override;
@@ -57,7 +60,15 @@ public:
 
     // Give a voice a recorded one-shot (mono float frames at `rate`). Must be
     // called while stopped: the audio thread reads the bank without a lock.
-    void loadSample(int voiceIndex, const float *frames, int length, int rate);
+    // `baseMidiNote` is the recording's pitch for pitched voices, 0 otherwise.
+    void loadSample(int voiceIndex, const float *frames, int length, int rate, int baseMidiNote);
+
+    // A bass line is stepsPerBeat sub-steps per beat over `bars` measures, each
+    // a semitone offset from the root or BASS_REST. It cycles with the measure
+    // counter independently of the drum groove. Silent with the Metronome style.
+    void setBassLine(int stepsPerBeat, int bars, const int *notes, int count);
+    void setBassRoot(int midiNote);
+    void setBassEnabled(bool enabled);
 
 private:
     std::shared_ptr<oboe::AudioStream> stream;
@@ -82,6 +93,14 @@ private:
     std::atomic<int> accentPattern[MAX_BEATS];
     std::atomic<int> grooveStepsPerBeat{0};     // written from the JNI thread; 0 = Metronome style
     std::atomic<int> grooveStepVoices[MAX_STEPS]; // written from the JNI thread
+    std::atomic<int> bassStepsPerBeat{0};       // written from the JNI thread; 0 = no bass line
+    std::atomic<int> bassBars{1};
+    std::atomic<int> bassNotes[MAX_BASS_STEPS];
+    std::atomic<int> bassRoot{36};              // MIDI note of the root, C2 by default
+    std::atomic<bool> bassEnabled{false};
+    int activeBassStepsPerBeat = 0;       // audio thread only: bass sub-steps in the current beat
+    int activeBassBars = 1;               // audio thread only
+    int nextBassStep = 0;                 // audio thread only
     int activeStepsPerBeat = 1;           // audio thread only: sub-steps in the current beat
     int nextStep = 0;                     // audio thread only: next sub-step to strike
     bool metronomeStyle = true;           // audio thread only: latched at each beat
@@ -99,6 +118,8 @@ private:
     void generateTick(float *buffer, int32_t numFrames);
     void resetVoices();
     int voicesForStep(int beat, int step) const;
+    int bassNoteForStep(int beat, int step) const;
+    float bassRateFor(int midiNote) const;
     void sendBeatToJava(int beat);
 
 };
