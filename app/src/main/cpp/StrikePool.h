@@ -5,6 +5,7 @@
 // so the same voice can ring several times over, e.g. a ride cymbal's tail
 // carrying through the next hit. No allocation; the audio thread owns it.
 
+#include "Samples.h"
 #include "Voices.h"
 
 namespace voices {
@@ -40,13 +41,18 @@ inline void strike(StrikePool &pool, int mask) {
     }
 }
 
-// One output sample: the soft-limited sum of every sounding strike, then advance them.
-inline float renderPool(StrikePool &pool, double sampleRate) {
+// One output sample: the soft-limited sum of every sounding strike, then advance
+// them. A voice with a recorded sample in `bank` plays that instead of its synth.
+inline float renderPool(StrikePool &pool, double sampleRate, const SampleBank &bank) {
     float out = 0.0f;
     for (Strike &s : pool.slots) {
         if (s.age < 0) continue;
-        out += render(s.voice, s.age, sampleRate, s.state);
-        if (++s.age >= durationSamples(s.voice, sampleRate)) s.age = -1;
+        const bool sampled = hasSample(bank, s.voice);
+        out += sampled ? playSample(bank.voices[s.voice], s.age, sampleRate)
+                       : render(s.voice, s.age, sampleRate, s.state);
+        const int duration = sampled ? sampleDurationSamples(bank.voices[s.voice], sampleRate)
+                                     : durationSamples(s.voice, sampleRate);
+        if (++s.age >= duration) s.age = -1;
     }
     return softLimit(out);
 }

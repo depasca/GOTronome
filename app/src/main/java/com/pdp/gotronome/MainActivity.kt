@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.data.UserPreferencesRepository
+import com.pdp.gotronome.data.loadSamples
 import com.pdp.gotronome.data.loadStyles
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
@@ -38,6 +39,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val metronome = Metronome()
+            loadSamples(LocalContext.current, metronome)
             val viewModel: MetronomeViewModel = viewModel(
                 factory = MetronomeViewModelFactory(
                     UserPreferencesRepository(

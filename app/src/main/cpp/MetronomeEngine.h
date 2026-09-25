@@ -6,6 +6,7 @@
 #include <atomic>
 #include <jni.h>
 #include "StrikePool.h"
+#include <vector>
 
 #define MODULE_NAME  "GOT-CPP"
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, MODULE_NAME, __VA_ARGS__)
@@ -54,6 +55,10 @@ public:
     // style: one blip per beat chosen from the accent pattern.
     void setGroove(int stepsPerBeat, const int *stepVoices, int count);
 
+    // Give a voice a recorded one-shot (mono float frames at `rate`). Must be
+    // called while stopped: the audio thread reads the bank without a lock.
+    void loadSample(int voiceIndex, const float *frames, int length, int rate);
+
 private:
     std::shared_ptr<oboe::AudioStream> stream;
     std::atomic<bool> isPlaying{false};
@@ -81,6 +86,8 @@ private:
     int nextStep = 0;                     // audio thread only: next sub-step to strike
     bool metronomeStyle = true;           // audio thread only: latched at each beat
     voices::StrikePool strikes;           // audio thread only: every sounding strike
+    voices::SampleBank samples;           // filled while stopped, read by the audio thread
+    std::vector<float> sampleStorage[NUM_VOICES];
     std::mutex mLock;
 
     JavaVM *javaVm = nullptr;

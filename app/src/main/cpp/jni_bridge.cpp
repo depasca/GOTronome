@@ -46,6 +46,13 @@ void setGroove(JNIEnv* env, jobject thiz, int stepsPerBeat, jintArray stepVoices
     env->ReleaseIntArrayElements(stepVoices, elems, JNI_ABORT);
 }
 
+void loadSample(JNIEnv* env, jobject thiz, int voiceIndex, jfloatArray frames, int rate) {
+    jsize len = env->GetArrayLength(frames);
+    jfloat* elems = env->GetFloatArrayElements(frames, nullptr);
+    engine.loadSample(voiceIndex, elems, static_cast<int>(len), rate);
+    env->ReleaseFloatArrayElements(frames, elems, JNI_ABORT);
+}
+
 extern "C" JNICALL
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
     JNIEnv* env;
@@ -75,6 +82,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
             {"setCountInEnabled", "(Z)V", reinterpret_cast<void*>(setCountInEnabled)},
             {"setAccentPattern", "([I)V", reinterpret_cast<void*>(setAccentPattern)},
             {"setGroove", "(I[I)V", reinterpret_cast<void*>(setGroove)},
+            {"loadSample", "(I[FI)V", reinterpret_cast<void*>(loadSample)},
     };
     int rc = env->RegisterNatives(c, methods, sizeof(methods)/sizeof(JNINativeMethod));
     if (rc != JNI_OK) return rc;

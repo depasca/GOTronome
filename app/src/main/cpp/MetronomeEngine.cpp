@@ -261,7 +261,7 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
             nextStep++;
         }
 
-        buffer[i] = voices::renderPool(strikes, sampleRate);
+        buffer[i] = voices::renderPool(strikes, sampleRate, samples);
 
         beatPhase -= 1.0;
         samplesSinceBeat++;
@@ -336,6 +336,18 @@ void MetronomeEngine::setAccentPattern(const int *pattern, int count) {
     for (int i = 0; i < MAX_BEATS; ++i) {
         accentPattern[i].store(i < count ? pattern[i] : 1, std::memory_order_relaxed);
     }
+}
+
+void MetronomeEngine::loadSample(int voiceIndex, const float *frames, int length, int rate) {
+    std::lock_guard<std::mutex> lock(mLock);
+    if (voiceIndex < 0 || voiceIndex >= NUM_VOICES || length <= 0 || rate <= 0) return;
+    if (isPlaying.load(std::memory_order_relaxed)) {
+        LOGW("MetronomeEngine::loadSample ignored while playing");
+        return;
+    }
+    sampleStorage[voiceIndex].assign(frames, frames + length);
+    samples.voices[voiceIndex] = {sampleStorage[voiceIndex].data(), length, static_cast<float>(rate)};
+    LOGD("MetronomeEngine::loadSample voice %d: %d frames at %d Hz", voiceIndex, length, rate);
 }
 
 void MetronomeEngine::setGroove(int stepsPerBeat, const int *stepVoices, int count) {

@@ -40,6 +40,12 @@ open class Metronome {
      */
     open external fun setGroove(stepsPerBeat: Int, stepVoices: IntArray)
 
+    /**
+     * Give voice number [voiceIndex] (0-based bit position of a [Voice]) a recorded one-shot.
+     * Mono frames in -1..1 at [sampleRate]. Ignored by the engine while playing.
+     */
+    open external fun loadSample(voiceIndex: Int, frames: FloatArray, sampleRate: Int)
+
     object Voice {
         const val BLIP_HI = 1 shl 0
         const val BLIP_LO = 1 shl 1

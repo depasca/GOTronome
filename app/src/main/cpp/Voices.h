@@ -23,6 +23,13 @@ enum Voice : int {
 };
 
 constexpr int NUM_VOICES = 8;
+
+// Bit position of a single Voice flag, e.g. voiceIndex(RIDE) == 6.
+inline int voiceIndex(int voiceBit) {
+    int index = 0;
+    while (index < NUM_VOICES - 1 && !(voiceBit & (1 << index))) ++index;
+    return index;
+}
 constexpr int STRIKE_STATE = 200;  // floats of per-strike memory available to a voice
 constexpr float kPi = 3.14159265358979f;
 constexpr float kBlipSeconds = 0.01f;
