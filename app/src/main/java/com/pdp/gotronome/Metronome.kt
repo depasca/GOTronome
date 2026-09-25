@@ -43,5 +43,11 @@ open class Metronome {
     object Voice {
         const val BLIP_HI = 1 shl 0
         const val BLIP_LO = 1 shl 1
+        const val KICK = 1 shl 2
+        const val SNARE = 1 shl 3
+        const val HAT_CLOSED = 1 shl 4
+        const val HAT_PEDAL = 1 shl 5
+        const val RIDE = 1 shl 6
+        const val CROSS_STICK = 1 shl 7
     }
 }

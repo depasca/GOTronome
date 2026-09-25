@@ -167,44 +167,10 @@ oboe::Result MetronomeEngine::createStream() {
 
 namespace {
 
-float envelope(float t, float duration) {
-    float attack = 0.002f;
-    float release = 0.008f;
-    if (t < attack) return t / attack;
-    else if (t > duration - release) return (duration - t) / release;
-    else return 0.9f;
-}
-
-constexpr float kBlipSeconds = 0.01f;
-
-int voiceDurationSamples(int voice, double sampleRate) {
-    switch (1 << voice) {
-        case MetronomeEngine::VOICE_BLIP_HI:
-        case MetronomeEngine::VOICE_BLIP_LO:
-            return static_cast<int>(sampleRate * kBlipSeconds);
-        default:
-            return 0;
-    }
-}
-
-float renderBlip(int age, double sampleRate, float freq, float volume) {
-    const float duration = static_cast<int>(sampleRate * kBlipSeconds) / sampleRate;
-    const float t = static_cast<float>(age) / sampleRate;
-    return volume * envelope(t, duration) * sinf(2.0f * M_PI * freq * t);
-}
-
-float renderVoice(int voice, int age, double sampleRate) {
-    switch (1 << voice) {
-        case MetronomeEngine::VOICE_BLIP_HI: return renderBlip(age, sampleRate, 1760.0f, 0.5f);
-        case MetronomeEngine::VOICE_BLIP_LO: return renderBlip(age, sampleRate, 880.0f, 0.3f);
-        default: return 0.0f;
-    }
-}
-
 // Per-beat level (2 = accent, 1 = normal, 0 = mute) as a voice mask.
 int blipForLevel(int level) {
-    if (level == 2) return MetronomeEngine::VOICE_BLIP_HI;
-    if (level == 1) return MetronomeEngine::VOICE_BLIP_LO;
+    if (level == 2) return voices::BLIP_HI;
+    if (level == 1) return voices::BLIP_LO;
     return 0;
 }
 
@@ -233,10 +199,10 @@ float MetronomeEngine::renderVoices() {
     float out = 0.0f;
     for (int v = 0; v < NUM_VOICES; ++v) {
         if (voiceAge[v] < 0) continue;
-        out += renderVoice(v, voiceAge[v], sampleRate);
-        if (++voiceAge[v] >= voiceDurationSamples(v, sampleRate)) voiceAge[v] = -1;
+        out += voices::render(v, voiceAge[v], sampleRate);
+        if (++voiceAge[v] >= voices::durationSamples(v, sampleRate)) voiceAge[v] = -1;
     }
-    return out;
+    return voices::softLimit(out);
 }
 
 int MetronomeEngine::voicesForStep(int beat, int step) const {

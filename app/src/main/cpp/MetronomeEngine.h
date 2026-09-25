@@ -5,6 +5,7 @@
 #include <memory>
 #include <atomic>
 #include <jni.h>
+#include "Voices.h"
 
 #define MODULE_NAME  "GOT-CPP"
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, MODULE_NAME, __VA_ARGS__)
@@ -18,14 +19,8 @@ class MetronomeEngine : public oboe::AudioStreamCallback {
 public:
     static constexpr int MAX_BEATS = 16;
     static constexpr int MAX_STEPS_PER_BEAT = 4;
-    static constexpr int NUM_VOICES = 8;
+    static constexpr int NUM_VOICES = voices::NUM_VOICES;
     static constexpr int MAX_STEPS = MAX_BEATS * MAX_STEPS_PER_BEAT;
-
-    // A groove step is a bitmask of these voices.
-    enum Voice : int {
-        VOICE_BLIP_HI = 1 << 0,
-        VOICE_BLIP_LO = 1 << 1,
-    };
 
     MetronomeEngine();
     ~MetronomeEngine() override;
