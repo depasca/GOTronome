@@ -7,11 +7,16 @@ import androidx.lifecycle.viewModelScope
 import com.pdp.gotronome.data.MODE_BAR_LOOP
 import com.pdp.gotronome.data.MODE_BASIC
 import com.pdp.gotronome.data.MODE_SILENT_BARS
+import com.pdp.gotronome.data.STYLE_METRONOME
+import com.pdp.gotronome.data.Style
 import com.pdp.gotronome.data.UserPreferencesRepository
 import com.pdp.gotronome.data.beatsForTimeSignature
 import com.pdp.gotronome.data.counterSequence
 import com.pdp.gotronome.data.defaultAccentPattern
+import com.pdp.gotronome.data.isMetronome
+import com.pdp.gotronome.data.metronomeStyle
 import com.pdp.gotronome.data.modes
+import com.pdp.gotronome.data.resolveStyle
 import com.pdp.gotronome.data.timeSignatures
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +31,8 @@ const val PLAYING_STATE_COUNT_IN = 3
 
 open class MetronomeViewModel(
     private val userPreferencesRepository: UserPreferencesRepository?,
-    private val metronome: Metronome?
+    private val metronome: Metronome?,
+    val styles: List<Style> = listOf(metronomeStyle),
 ): ViewModel(), MetronomeCallback {
 
     private val _page = MutableStateFlow<String>("settings")
@@ -64,6 +70,11 @@ open class MetronomeViewModel(
 
     private val _accentPattern = MutableStateFlow<List<Int>>(defaultAccentPattern(timeSignatures.first()))
     open val accentPattern: StateFlow<List<Int>> = _accentPattern
+
+    // The saved style id, and the style actually played once the time signature is applied.
+    private val _styleId = MutableStateFlow<String>(STYLE_METRONOME)
+    private val _effectiveStyle = MutableStateFlow<Style>(metronomeStyle)
+    open val effectiveStyle: StateFlow<Style> = _effectiveStyle
 
     init {
         initialize()
@@ -116,6 +127,10 @@ open class MetronomeViewModel(
             val initialMode = userPreferencesRepository.modeFlow.first()
             setMode(initialMode)
             Log.d(TAG, "Init -> Mode: $initialMode")
+
+            _styleId.value = userPreferencesRepository.styleFlow.first()
+            applyStyle()
+            Log.d(TAG, "Init -> Style: ${_styleId.value}")
         }
         Log.d(TAG, "MetronomeViewModel init done")
     }
@@ -171,6 +186,28 @@ open class MetronomeViewModel(
             val pattern = userPreferencesRepository.accentPatternFlow(_timeSignature.value).first()
             _accentPattern.value = pattern
             metronome?.setAccentPattern(pattern.toIntArray())
+        }
+        applyStyle()
+    }
+
+    open fun setStyle(styleId: String) {
+        _styleId.value = styleId
+        applyStyle()
+        viewModelScope.launch {
+            userPreferencesRepository?.setStyle(styleId)
+        }
+    }
+
+    // Resolve the saved style against the current time signature and hand the
+    // groove to the engine; it takes effect on the next beat.
+    private fun applyStyle() {
+        val style = resolveStyle(styles, _styleId.value, _timeSignature.value)
+        _effectiveStyle.value = style
+        val groove = style.grooves[_timeSignature.value]
+        if (style.isMetronome() || groove == null) {
+            metronome?.setGroove(0, IntArray(0))
+        } else {
+            metronome?.setGroove(groove.stepsPerBeat, groove.stepVoices.toIntArray())
         }
     }
 
@@ -279,12 +316,13 @@ open class MetronomeViewModel(
 
 class MetronomeViewModelFactory(
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val metronome: Metronome
+    private val metronome: Metronome,
+    private val styles: List<Style>,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MetronomeViewModel::class.java)) {
-            return MetronomeViewModel(userPreferencesRepository, metronome) as T
+            return MetronomeViewModel(userPreferencesRepository, metronome, styles) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

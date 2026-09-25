@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdp.gotronome.data.UserPreferencesRepository
+import com.pdp.gotronome.data.loadStyles
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-MainActivity"
@@ -42,7 +43,8 @@ class MainActivity : ComponentActivity() {
                     UserPreferencesRepository(
                         LocalContext.current
                     ),
-                    metronome
+                    metronome,
+                    loadStyles(LocalContext.current),
                 )
             )
             GOTronomeTheme {

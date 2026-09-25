@@ -33,6 +33,8 @@ import com.pdp.gotronome.components.AppMenu
 import com.pdp.gotronome.components.BasicSettingsCard
 import com.pdp.gotronome.components.BeatPatternEditor
 import com.pdp.gotronome.components.ModeToggle
+import com.pdp.gotronome.components.StyleSelector
+import com.pdp.gotronome.data.isMetronome
 import com.pdp.gotronome.components.NumSelector
 import com.pdp.gotronome.data.MODE_BAR_LOOP
 import com.pdp.gotronome.data.MODE_SILENT_BARS
@@ -76,7 +78,7 @@ fun SettingsScreen(
                     viewModel = viewModel,
                     modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
                 )
-                BeatPatternEditor(
+                StyleSection(
                     viewModel = viewModel,
                     modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
                 )
@@ -87,7 +89,7 @@ fun SettingsScreen(
             ) {
                 SettingsControls(viewModel = viewModel)
                 Spacer(modifier = Modifier.height(8.dp))
-                BeatPatternEditor(viewModel = viewModel)
+                StyleSection(viewModel = viewModel)
             }
         }
 
@@ -98,6 +100,21 @@ fun SettingsScreen(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.secondary,
         )
+    }
+}
+
+/** The style picker, with the per-beat accent editor underneath it for the Metronome style only. */
+@Composable
+private fun StyleSection(
+    viewModel: MetronomeViewModel,
+    modifier: Modifier = Modifier,
+) {
+    val effectiveStyle by viewModel.effectiveStyle.collectAsStateWithLifecycle()
+    Column(modifier = modifier) {
+        StyleSelector(viewModel = viewModel)
+        if (effectiveStyle.isMetronome()) {
+            BeatPatternEditor(viewModel = viewModel)
+        }
     }
 }
 
