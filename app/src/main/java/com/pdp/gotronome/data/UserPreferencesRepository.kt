@@ -26,6 +26,8 @@ val NUM_BARS = intPreferencesKey("num_bars")
 val NUM_SILENT_MEASURES = intPreferencesKey("num_silent_measures")
 val MODE = stringPreferencesKey("mode")
 val STYLE = stringPreferencesKey("style")
+val BASS_ENABLED = booleanPreferencesKey("bass_enabled")
+val BASS_ROOT = intPreferencesKey("bass_root")
 val counterSequence = sequenceOf(5, 8, 13, 21)
 
 const val FOURFOURS = "4/4"
@@ -99,6 +101,17 @@ class UserPreferencesRepository (
     val styleFlow: Flow<String> = context.dataStore.data
         .map { preferences ->
             preferences[STYLE] ?: STYLE_METRONOME
+        }
+
+    val bassEnabledFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[BASS_ENABLED] ?: false
+        }
+
+    /** Root of the bass line as a pitch class from C (0..11). */
+    val bassRootFlow: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            (preferences[BASS_ROOT] ?: 0).coerceIn(0, 11)
         }
 
     val showBarsFlow: Flow<Boolean> = context.dataStore.data
@@ -183,6 +196,18 @@ class UserPreferencesRepository (
     suspend fun setStyle(styleId: String) {
         context.dataStore.edit { preferences ->
             preferences[STYLE] = styleId
+        }
+    }
+
+    suspend fun setBassEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[BASS_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setBassRoot(pitchClass: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[BASS_ROOT] = pitchClass.coerceIn(0, 11)
         }
     }
 

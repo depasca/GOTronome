@@ -7,6 +7,7 @@ import com.pdp.gotronome.data.STYLE_METRONOME
 import com.pdp.gotronome.data.THREEFOURS
 import com.pdp.gotronome.data.TWOFOURS
 import com.pdp.gotronome.data.TWOTWOS
+import com.pdp.gotronome.data.bassRootMidi
 import com.pdp.gotronome.data.beatsForTimeSignature
 import com.pdp.gotronome.data.parseStyles
 import com.pdp.gotronome.data.resolveStyle
@@ -33,7 +34,41 @@ class StylesTest {
         assertEquals(expected, bundled.associate { it.id to it.grooves.keys })
         bundled.flatMap { it.grooves.entries }.forEach { (timeSignature, groove) ->
             assertEquals(beatsForTimeSignature(timeSignature) * groove.stepsPerBeat, groove.stepVoices.size)
+            val bass = groove.bass ?: error("no bass line for $timeSignature")
+            assertEquals(beatsForTimeSignature(timeSignature) * bass.stepsPerBeat * bass.bars, bass.notes.size)
         }
+    }
+
+    @Test
+    fun swingWalksTwoBarsAndBarSeparatorsAreIgnored() {
+        val swing = bundled.first { it.id == "swing" }.grooves.getValue(FOURFOURS).bass!!
+        assertEquals(2, swing.bars)
+        assertEquals(1, swing.stepsPerBeat)
+        assertEquals(listOf(0, 4, 7, 9, 10, 9, 7, -1), swing.notes)
+    }
+
+    @Test
+    fun bassRestsAndRootRegister() {
+        val styles = parseStyles(
+            """
+            style metronome Metronome
+            style test Test
+            groove 2/4 2 K . S .
+            bass 2/4 1 0 .
+            """.trimIndent()
+        )
+        assertEquals(listOf(0, Metronome.BASS_REST), styles.last().grooves.getValue(TWOFOURS).bass!!.notes)
+        assertEquals(28, bassRootMidi(4))   // E1
+        assertEquals(36, bassRootMidi(0))   // C2
+        assertEquals(39, bassRootMidi(3))   // E♭2, the top of the register
+    }
+
+    @Test
+    fun bassLineBeforeItsGrooveIsRejected() {
+        val error = assertThrows(IllegalArgumentException::class.java) {
+            parseStyles("style metronome Metronome\nstyle bad Bad\nbass 4/4 1 0 0 0 0")
+        }
+        assertEquals(true, error.message!!.contains(":3 "))
     }
 
     @Test

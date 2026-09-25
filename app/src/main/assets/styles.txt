@@ -3,8 +3,13 @@
 # style  <id> <display name>
 # groove <time signature> <steps per beat> <one token per step>
 #
-# A token is the set of voices struck on that step, or "." for a rest:
+# bass   <time signature> <steps per beat> <one token per step, one or more bars>
+#
+# A groove token is the set of voices struck on that step, or "." for a rest:
 #   K kick   S snare   H closed hi-hat   P pedal hi-hat   R ride   X cross-stick
+# A bass token is a semitone offset from the chosen root, or "." for a rest.
+# "|" may separate bars and is ignored. A bass line follows the groove of the
+# same time signature and may span several bars; it cycles with the measure.
 # The metronome style has no grooves: it plays the per-beat accent pattern
 # and is valid in every time signature. Styles appear in file order.
 
@@ -12,20 +17,28 @@ style metronome Metronome
 
 style rock Rock
 groove 4/4 2 KH H SH H KH H SH H
+bass   4/4 2 0 0 0 0 7 7 0 0
 groove 6/8 1 KH H H SH H H
+bass   6/8 1 0 . . 7 . .
 
 style swing Swing
 groove 4/4 3 R . . RP . R R . . RP . R
+bass   4/4 1 0 4 7 9 | 10 9 7 -1
 
 style shuffle Shuffle
 groove 4/4 3 KH . H SH . H KH . H SH . H
+bass   4/4 3 0 . 0 0 . 0 7 . 7 0 . 0
 
 style waltz Waltz
 groove 3/4 1 KH XH XH
+bass   3/4 1 0 7 7
 
 style bossa Bossa
 groove 4/4 4 KXH . H X H . KXH . KH . XH . XH . KH .
+bass   4/4 4 0 . . . . . 7 . 0 . . . . . 7 .
 
 style march March
 groove 2/4 2 K S KS S
+bass   2/4 2 0 . 7 .
 groove 2/2 2 K S KS S
+bass   2/2 2 0 . 7 .
