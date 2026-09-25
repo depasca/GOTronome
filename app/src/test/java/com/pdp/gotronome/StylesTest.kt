@@ -29,6 +29,7 @@ class StylesTest {
             "shuffle" to setOf(FOURFOURS),
             "waltz" to setOf(THREEFOURS),
             "bossa" to setOf(FOURFOURS),
+            "samba" to setOf(TWOFOURS, FOURFOURS),
             "march" to setOf(TWOFOURS, TWOTWOS),
         )
         assertEquals(expected, bundled.associate { it.id to it.grooves.keys })
