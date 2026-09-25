@@ -15,7 +15,7 @@ groove 4/4 2 KH H SH H KH H SH H
 groove 6/8 1 KH H H SH H H
 
 style swing Swing
-groove 4/4 3 KR . . RP . R R . . RP . R
+groove 4/4 3 R . . RP . R R . . RP . R
 
 style shuffle Shuffle
 groove 4/4 3 KH . H SH . H KH . H SH . H

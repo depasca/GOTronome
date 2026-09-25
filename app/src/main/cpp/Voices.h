@@ -75,16 +75,31 @@ inline float hatClosed(float t, int age) {
     return 0.5f * decay(t, 0.015f) * brightNoise(age, HAT_CLOSED);
 }
 
+// Foot "chick": darker and rounder than the stick hat, with enough body to mark 2 and 4.
 inline float hatPedal(float t, int age) {
-    return 0.3f * decay(t, 0.01f) * brightNoise(age, HAT_PEDAL);
+    const float dark = 0.6f * noise(age, HAT_PEDAL) + 0.4f * brightNoise(age, HAT_PEDAL);
+    return 0.5f * decay(t, 0.025f) * dark;
 }
 
+// Ride cymbal: a stick "ping" on top of a long, inharmonic shimmer. Cymbal
+// modes are not harmonic, so the partials are at irrational-looking ratios and
+// the low ones ring longest; two close pairs beat slowly for the shimmer.
 inline float ride(float t, int age) {
-    const float wash = 0.12f * decay(t, 0.18f) * brightNoise(age, RIDE);
-    const float ping = 0.16f * decay(t, 0.12f) *
-                       (sinf(2.0f * kPi * 3140.0f * t) + 0.6f * sinf(2.0f * kPi * 4710.0f * t) +
-                        0.4f * sinf(2.0f * kPi * 6280.0f * t));
-    return wash + ping;
+    constexpr float f0 = 540.0f;
+    constexpr float ratios[] = {1.0f, 1.49f, 2.13f, 2.61f, 3.24f, 3.71f, 4.53f, 5.42f, 6.33f, 7.88f};
+    constexpr float amps[] = {0.30f, 0.26f, 0.22f, 0.20f, 0.17f, 0.15f, 0.12f, 0.10f, 0.08f, 0.06f};
+    constexpr float taus[] = {1.10f, 1.00f, 0.90f, 0.80f, 0.65f, 0.55f, 0.45f, 0.38f, 0.32f, 0.26f};
+    float body = 0.0f;
+    for (int i = 0; i < 10; ++i) {
+        body += amps[i] * decay(t, taus[i]) * sinf(2.0f * kPi * f0 * ratios[i] * t);
+    }
+    // Slow beating between near partials gives the "wash" its movement.
+    const float shimmer = 0.07f * decay(t, 0.9f) *
+                          (sinf(2.0f * kPi * 1610.0f * t) * sinf(2.0f * kPi * 3.1f * t) +
+                           sinf(2.0f * kPi * 2870.0f * t) * sinf(2.0f * kPi * 4.7f * t));
+    const float wash = 0.06f * decay(t, 0.45f) * brightNoise(age, RIDE);
+    const float ping = 0.25f * decay(t, 0.006f) * noise(age, RIDE);
+    return 0.32f * body + shimmer + wash + ping;
 }
 
 inline float crossStick(float t, int age) {
@@ -101,8 +116,8 @@ inline float durationSeconds(int voiceBit) {
         case KICK: return 0.30f;
         case SNARE: return 0.25f;
         case HAT_CLOSED: return 0.07f;
-        case HAT_PEDAL: return 0.05f;
-        case RIDE: return 0.70f;
+        case HAT_PEDAL: return 0.12f;
+        case RIDE: return 1.80f;
         case CROSS_STICK: return 0.06f;
         default: return 0.0f;
     }

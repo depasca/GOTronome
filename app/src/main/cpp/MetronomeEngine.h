@@ -5,7 +5,7 @@
 #include <memory>
 #include <atomic>
 #include <jni.h>
-#include "Voices.h"
+#include "StrikePool.h"
 
 #define MODULE_NAME  "GOT-CPP"
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, MODULE_NAME, __VA_ARGS__)
@@ -80,7 +80,7 @@ private:
     int activeStepsPerBeat = 1;           // audio thread only: sub-steps in the current beat
     int nextStep = 0;                     // audio thread only: next sub-step to strike
     bool metronomeStyle = true;           // audio thread only: latched at each beat
-    int voiceAge[NUM_VOICES];             // audio thread only: samples since struck, -1 = silent
+    voices::StrikePool strikes;           // audio thread only: every sounding strike
     std::mutex mLock;
 
     JavaVM *javaVm = nullptr;
@@ -91,8 +91,6 @@ private:
     oboe::Result startStream(); // open + start with retries; assumes mLock held
     void generateTick(float *buffer, int32_t numFrames);
     void resetVoices();
-    void strikeVoices(int mask);
-    float renderVoices();
     int voicesForStep(int beat, int step) const;
     void sendBeatToJava(int beat);
 

@@ -183,26 +183,10 @@ int stepStartSample(int step, double samplesPerBeat, int stepsPerBeat) {
 } // namespace
 
 void MetronomeEngine::resetVoices() {
-    for (int &age : voiceAge) age = -1;
+    voices::resetPool(strikes);
     nextStep = 0;
     activeStepsPerBeat = 1;
     metronomeStyle = true;
-}
-
-void MetronomeEngine::strikeVoices(int mask) {
-    for (int v = 0; v < NUM_VOICES; ++v) {
-        if (mask & (1 << v)) voiceAge[v] = 0;
-    }
-}
-
-float MetronomeEngine::renderVoices() {
-    float out = 0.0f;
-    for (int v = 0; v < NUM_VOICES; ++v) {
-        if (voiceAge[v] < 0) continue;
-        out += voices::render(v, voiceAge[v], sampleRate);
-        if (++voiceAge[v] >= voices::durationSamples(v, sampleRate)) voiceAge[v] = -1;
-    }
-    return voices::softLimit(out);
 }
 
 int MetronomeEngine::voicesForStep(int beat, int step) const {
@@ -272,12 +256,12 @@ void MetronomeEngine::generateTick(float *buffer, int32_t numFrames) {
         if (nextStep < activeStepsPerBeat &&
             samplesSinceBeat >= stepStartSample(nextStep, period, activeStepsPerBeat)) {
             if (!isSilent.load(std::memory_order_relaxed)) {
-                strikeVoices(voicesForStep(currentBeat.load(std::memory_order_relaxed), nextStep));
+                voices::strike(strikes, voicesForStep(currentBeat.load(std::memory_order_relaxed), nextStep));
             }
             nextStep++;
         }
 
-        buffer[i] = renderVoices();
+        buffer[i] = voices::renderPool(strikes, sampleRate);
 
         beatPhase -= 1.0;
         samplesSinceBeat++;
