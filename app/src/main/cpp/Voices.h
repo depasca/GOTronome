@@ -157,8 +157,8 @@ inline float bass(float t, int age, float rate) {
     float body = 0.0f;
     for (int n = 1; n <= 6; ++n) body += amps[n - 1] * decay(t, 0.9f / n) * sinf(2.0f * kPi * f * n * t);
     const float attack = 1.0f - decay(t, 0.003f);
-    const float thump = 0.25f * decay(t, 0.01f) * noise(age, BASS);
-    return 0.35f * body * attack + thump;
+    const float thump = 0.15f * decay(t, 0.01f) * noise(age, BASS);
+    return 0.22f * body * attack + thump;
 }
 
 inline float crossStick(float t, int age) {
