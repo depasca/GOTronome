@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -78,6 +79,7 @@ fun BassControls(
                 rootNames.forEachIndexed { pitchClass, name ->
                     DropdownMenuItem(
                         text = { Text(name) },
+                        trailingIcon = { SelectedCheck(pitchClass == root) },
                         onClick = {
                             expanded = false
                             viewModel.setBassRoot(pitchClass)

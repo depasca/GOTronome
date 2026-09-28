@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -20,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -69,6 +71,7 @@ fun StyleSelector(
                 options.forEach { style ->
                     DropdownMenuItem(
                         text = { Text(style.name) },
+                        trailingIcon = { SelectedCheck(style.id == effectiveStyle.id) },
                         onClick = {
                             expanded = false
                             viewModel.setStyle(style.id)
@@ -78,6 +81,16 @@ fun StyleSelector(
             }
         }
     }
+}
+
+/** Marks the current choice in a dropdown; keeps unselected rows the same width. */
+@Composable
+internal fun SelectedCheck(selected: Boolean) {
+    Icon(
+        imageVector = Icons.Filled.Check,
+        contentDescription = if (selected) "Selected" else null,
+        tint = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+    )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFF0EAE2)

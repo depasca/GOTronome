@@ -18,9 +18,20 @@ private val GOTDarkColorScheme = darkColorScheme(
     tertiary = GOTDarkOrange,
     background = GOTBlack,
     surface = GOTDarkGrey,
-    onSurface = GOTLightOrange,
     surfaceVariant = GOTDarkGrey,
-    onSurfaceVariant = GOTWhite
+    onSurfaceVariant = GOTWhite,
+    onSurface = GOTWhite,
+    onPrimary = GOTWhite,
+    onSecondary = GOTBlack,
+    onTertiary = GOTWhite,
+    secondaryContainer = GOTDarkGrey,
+    surfaceContainerLowest = GOTDarkGrey,
+    surfaceContainerLow = GOTDarkGrey,
+    surfaceContainer = GOTDarkGrey,
+    surfaceContainerHigh = GOTDarkGrey,
+    surfaceContainerHighest = GOTDarkGrey,
+    outline = GOTMidGrey,
+    outlineVariant = GOTMidGrey,
 )
 
 private val GOTLightColorScheme = lightColorScheme(
@@ -29,9 +40,20 @@ private val GOTLightColorScheme = lightColorScheme(
     tertiary = GOTDarkOrange,
     background = GOTWhite,
     surface = GOTLightGrey,
-    onSurface = GOTLightOrange,
     surfaceVariant = GOTLightGrey,
-    onSurfaceVariant = GOTBlack
+    onSurfaceVariant = GOTBlack,
+    onSurface = GOTBlack,
+    onPrimary = GOTWhite,
+    onSecondary = GOTWhite,
+    onTertiary = GOTWhite,
+    secondaryContainer = GOTLightGrey,
+    surfaceContainerLowest = GOTWhite,
+    surfaceContainerLow = GOTWhite,
+    surfaceContainer = GOTWhite,
+    surfaceContainerHigh = GOTWhite,
+    surfaceContainerHighest = GOTLightGrey,
+    outline = GOTMidGrey,
+    outlineVariant = GOTLightGrey,
 )
 
 @Composable
