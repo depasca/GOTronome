@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.pdp.gotronome.data.MAX_SILENT_BARS
 import com.pdp.gotronome.data.MODE_BAR_LOOP
 import com.pdp.gotronome.data.MODE_BASIC
 import com.pdp.gotronome.data.MODE_SILENT_BARS
@@ -118,7 +119,7 @@ open class MetronomeViewModel(
             _numBars.value = userPreferencesRepository.numBarsFlow.first()
             Log.d(TAG, "Init -> Num bars: ${_numBars.value}")
 
-            val initialNumSilentMeasures = userPreferencesRepository.numSilentMeasuresFlow.first()
+            val initialNumSilentMeasures = userPreferencesRepository.numSilentMeasuresFlow.first().coerceAtMost(MAX_SILENT_BARS)
             _numSilentMeasures.value = initialNumSilentMeasures
             metronome.setNumSilentMeasures(initialNumSilentMeasures)
             Log.d(TAG, "Init -> Num silent measures: $initialNumSilentMeasures")

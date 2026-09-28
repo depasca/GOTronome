@@ -40,6 +40,7 @@ import com.pdp.gotronome.data.isMetronome
 import com.pdp.gotronome.components.NumSelector
 import com.pdp.gotronome.data.MODE_BAR_LOOP
 import com.pdp.gotronome.data.MODE_SILENT_BARS
+import com.pdp.gotronome.data.MAX_SILENT_BARS
 import com.pdp.gotronome.ui.theme.GOTronomeTheme
 
 private const val TAG = "GOT-SettingsScreen"
@@ -187,7 +188,7 @@ private fun SettingsControls(
                 { viewModel.setNumSilentMeasures(it) },
                 { viewModel.storeNumSilentMeasures() },
                 1,
-                10
+                MAX_SILENT_BARS
             )
         }
         else if(mode == MODE_BAR_LOOP) {

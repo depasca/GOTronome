@@ -42,6 +42,9 @@ const val MODE_SILENT_BARS = "Silent bars"
 const val MODE_BAR_LOOP = "Bar loop"
 val modes = listOf(MODE_BASIC, MODE_BAR_LOOP, MODE_SILENT_BARS)
 
+// With one audible bar, longer gaps leave too little click to re-lock the tempo.
+const val MAX_SILENT_BARS = 8
+
 const val BEAT_MUTE = 0
 const val BEAT_NORMAL = 1
 const val BEAT_ACCENT = 2
