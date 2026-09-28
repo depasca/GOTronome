@@ -4,11 +4,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -16,10 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -39,6 +33,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -121,20 +117,8 @@ fun NumSelector(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(all = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.secondary,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+    Column(modifier = modifier.fillMaxWidth()) {
+        SettingRow(label = label) {
             EditableValue(
                 label = label,
                 value = value,
@@ -146,19 +130,14 @@ fun NumSelector(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
         ) {
-            IconButton(
+            StepButton(
+                symbol = "\u2212",
+                contentDescription = "Decrease $label",
                 interactionSource = leftInteractionSource,
                 onClick = { if (!leftLongPressed) propertySetter(max(minVal, value - 1)) },
                 enabled = value > minVal,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowDown,
-                    tint = MaterialTheme.colorScheme.secondary,
-                    contentDescription = "Decrease $label",
-                )
-            }
+            )
             Slider(
                 value = value.toFloat(),
                 onValueChange = { propertySetter(it.roundToInt().coerceIn(minVal, maxVal)) },
@@ -166,18 +145,36 @@ fun NumSelector(
                 valueRange = minVal.toFloat()..maxVal.toFloat(),
                 modifier = Modifier.weight(1f),
             )
-            IconButton(
+            StepButton(
+                symbol = "+",
+                contentDescription = "Increase $label",
                 interactionSource = rightInteractionSource,
                 onClick = { if (!rightLongPressed) propertySetter(min(maxVal, value + 1)) },
                 enabled = value < maxVal,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowUp,
-                    tint = MaterialTheme.colorScheme.secondary,
-                    contentDescription = "Increase $label",
-                )
-            }
+            )
         }
+    }
+}
+
+@Composable
+private fun StepButton(
+    symbol: String,
+    contentDescription: String,
+    interactionSource: MutableInteractionSource,
+    onClick: () -> Unit,
+    enabled: Boolean,
+) {
+    IconButton(
+        interactionSource = interactionSource,
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.semantics { this.contentDescription = contentDescription },
+    ) {
+        Text(
+            text = symbol,
+            style = settingLabelStyle(),
+            color = MaterialTheme.colorScheme.secondary.copy(alpha = if (enabled) 1f else 0.38f),
+        )
     }
 }
 
@@ -218,7 +215,7 @@ private fun EditableValue(
 
     LaunchedEffect(editing) { if (editing) focusRequester.requestFocus() }
 
-    val valueStyle = MaterialTheme.typography.headlineSmall.copy(
+    val valueStyle = settingLabelStyle().copy(
         color = MaterialTheme.colorScheme.secondary,
         textAlign = TextAlign.Center,
     )

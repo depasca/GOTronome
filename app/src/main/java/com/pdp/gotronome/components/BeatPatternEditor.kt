@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,27 +45,16 @@ fun BeatPatternEditor(
 ) {
     val pattern by viewModel.accentPattern.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = "Accents",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.secondary,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = "Tap a beat to cycle its sound",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.secondary,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+    Column(modifier = modifier.fillMaxWidth()) {
+        SettingRow(label = "Accents") {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                LegendItem(level = BEAT_ACCENT, label = "Accent")
+                LegendItem(level = BEAT_NORMAL, label = "Normal")
+                LegendItem(level = BEAT_MUTE, label = "Mute")
+            }
+        }
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = SETTING_ROW_HORIZONTAL_PADDING - 4.dp),
             horizontalArrangement = Arrangement.Center,
         ) {
             pattern.forEachIndexed { index, level ->
@@ -77,12 +65,6 @@ fun BeatPatternEditor(
                     modifier = Modifier.weight(1f),
                 )
             }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            LegendItem(level = BEAT_ACCENT, label = "Accent")
-            LegendItem(level = BEAT_NORMAL, label = "Normal")
-            LegendItem(level = BEAT_MUTE, label = "Mute")
         }
     }
 }

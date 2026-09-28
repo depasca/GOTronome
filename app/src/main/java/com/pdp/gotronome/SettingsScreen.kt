@@ -78,7 +78,7 @@ fun SettingsScreen(
                 if (isLandscape) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(32.dp),
                     ) {
                         SettingsControls(
                             viewModel = viewModel,

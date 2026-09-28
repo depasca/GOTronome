@@ -15,7 +15,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,25 +32,16 @@ fun TimeSignatureSelector(
 ) {
     val radioOptions = timeSignatures
     val selectedOption by viewModel.timeSignature.collectAsStateWithLifecycle()
-    Row(
-        modifier = Modifier.padding(all = 8.dp),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "TS",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.secondary,
-            textAlign = TextAlign.Center,
-        )
-        FlowRow (
-            modifier = Modifier.selectableGroup().padding(start = 34.dp),
+    SettingRow(label = "Time") {
+        FlowRow(
+            modifier = Modifier.selectableGroup(),
+            horizontalArrangement = Arrangement.Start,
             verticalArrangement = Arrangement.Center,
             maxItemsInEachRow = 3,
         ) {
             radioOptions.forEach { text ->
                 Row(
-                    Modifier.padding(all = 8.dp)
+                    Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
                         .selectable(
                             selected = (text == selectedOption),
                             onClick = { viewModel.setTimeSignature(text) },
