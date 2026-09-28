@@ -3,13 +3,13 @@ package com.pdp.gotronome
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -64,43 +65,81 @@ fun SettingsScreen(
         ) {
             AppMenu({ viewModel.setPage(it) })
             Image(
+                modifier = Modifier.clickable(onClickLabel = "Start") { viewModel.start() },
                 imageVector = ImageVector.vectorResource(R.drawable.gotronome_banner),
                 contentDescription = "GOTronome banner"
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (isLandscape) {
-            Row(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                SettingsControls(
-                    viewModel = viewModel,
-                    modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
+        ControlsAboveHint(
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            controls = {
+                if (isLandscape) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        SettingsControls(
+                            viewModel = viewModel,
+                            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                        )
+                        StyleSection(
+                            viewModel = viewModel,
+                            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                        )
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                    ) {
+                        SettingsControls(viewModel = viewModel)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        StyleSection(viewModel = viewModel)
+                    }
+                }
+            },
+            hint = {
+                Text(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    text = "Tap to start",
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.secondary,
                 )
-                StyleSection(
-                    viewModel = viewModel,
-                    modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
-                )
-            }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
-            ) {
-                SettingsControls(viewModel = viewModel)
-                Spacer(modifier = Modifier.height(8.dp))
-                StyleSection(viewModel = viewModel)
-            }
-        }
-
-        Text(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            text = "Tap anywhere to start/stop",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.secondary,
+            },
         )
+    }
+}
+
+/**
+ * Controls at the top, the start hint centred in whatever space they leave. The hint is
+ * measured first so it is never squeezed out: when the controls overflow they scroll and
+ * the hint sits at the bottom.
+ */
+@Composable
+private fun ControlsAboveHint(
+    controls: @Composable () -> Unit,
+    hint: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Layout(
+        contents = listOf(controls, hint),
+        modifier = modifier,
+    ) { (controlsMeasurables, hintMeasurables), constraints ->
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        val hintPlaceable = hintMeasurables.single().measure(loose)
+        val controlsPlaceable = controlsMeasurables.single().measure(
+            loose.copy(maxHeight = (constraints.maxHeight - hintPlaceable.height).coerceAtLeast(0))
+        )
+        val freeSpace = constraints.maxHeight - controlsPlaceable.height
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            controlsPlaceable.placeRelative(0, 0)
+            hintPlaceable.placeRelative(
+                x = (constraints.maxWidth - hintPlaceable.width) / 2,
+                y = controlsPlaceable.height + (freeSpace - hintPlaceable.height) / 2,
+            )
+        }
     }
 }
 
